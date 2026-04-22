@@ -1,0 +1,120 @@
+{
+  "projects": [
+    {
+      "id": "careersai",
+      "name": "CareersAI",
+      "type": "SaaS platform",
+      "summary": "A candidate-facing AI job intelligence platform focused on fit scoring, role matching, and recruiter-facing visibility.",
+      "highlights": [
+        "Designed as a product for scored role matching and candidate insight",
+        "Combines product thinking, AI workflow design, and SaaS delivery",
+        "Built to present structured matching rather than vague recommendations"
+      ],
+      "tech": [
+        "Next.js",
+        "TypeScript",
+        "Convex",
+        "Clerk",
+        "Stripe",
+        "Tailwind CSS"
+      ],
+      "themes": [
+        "AI products",
+        "recruitment",
+        "fit scoring",
+        "SaaS"
+      ]
+    },
+    {
+      "id": "recruitersai",
+      "name": "RecruitersAI",
+      "type": "SaaS platform",
+      "summary": "A recruiter-side platform designed to surface vetted, scored candidate intelligence and support faster hiring decisions.",
+      "highlights": [
+        "Built as the recruiter-side counterpart to candidate intelligence workflows",
+        "Focused on structured scoring, ranking, and relevance",
+        "Designed with agency and employer workflows in mind"
+      ],
+      "tech": [
+        "Next.js",
+        "TypeScript",
+        "Convex",
+        "Clerk",
+        "Stripe"
+      ],
+      "themes": [
+        "recruitment",
+        "AI workflows",
+        "SaaS",
+        "matching systems"
+      ]
+    },
+    {
+      "id": "interviewsai",
+      "name": "InterviewsAI",
+      "type": "Applied AI product",
+      "summary": "A structured interview and evaluation product inspired by a real-world technical assessment pipeline, combining backend logic, evaluation, scoring, and adaptive questioning patterns.",
+      "highlights": [
+        "Built from a real technical assessment idea and extended into a product concept",
+        "Uses Python backend logic and a modern frontend stack",
+        "Focused on evaluation flow, scoring, and adaptive questioning"
+      ],
+      "tech": [
+        "Python",
+        "FastAPI",
+        "Next.js",
+        "TypeScript"
+      ],
+      "themes": [
+        "interview systems",
+        "evaluation",
+        "AI product design",
+        "workflow automation"
+      ]
+    },
+    {
+      "id": "uk-jobs-pipeline",
+      "name": "UK AI Jobs Pipeline",
+      "type": "Automation system",
+      "summary": "A repeatable AI-assisted job search and scoring pipeline that scans job sources, filters relevant roles, and produces structured match reports.",
+      "highlights": [
+        "Demonstrates workflow automation and practical AI system design",
+        "Built around daily sourcing, filtering, and fit scoring",
+        "Acts as both a practical tool and a proof of systems thinking"
+      ],
+      "tech": [
+        "Python",
+        "Markdown pipelines",
+        "GitHub",
+        "Automation tooling"
+      ],
+      "themes": [
+        "automation",
+        "AI workflows",
+        "recruitment intelligence",
+        "scoring"
+      ]
+    },
+    {
+      "id": "ai-ide",
+      "name": "AI IDE initiative",
+      "type": "Product concept / engineering initiative",
+      "summary": "An AI IDE concept inspired by modern coding assistants, focused on model routing, local and cloud workflows, and transparent usage design.",
+      "highlights": [
+        "Shows product-level thinking around AI developer tooling",
+        "Explores architecture choices rather than superficial AI wrapping",
+        "Focused on practical value, transparency, and system design"
+      ],
+      "tech": [
+        "VS Code ecosystem",
+        "AI workflows",
+        "Product architecture"
+      ],
+      "themes": [
+        "developer tools",
+        "AI systems",
+        "product architecture"
+      ]
+    }
+  ]
+}

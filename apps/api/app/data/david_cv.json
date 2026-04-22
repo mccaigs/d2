@@ -1,0 +1,240 @@
+{
+    "name": "David Robertson",
+    "title": "AI Architect | AI Systems Engineer | AI Product Builder",
+    "location": "Edinburgh, United Kingdom",
+    "contact": {
+        "phone": "+44 7565 840188",
+        "email": "themaltings@outlook.com",
+        "availability": "Available immediately"
+    },
+    "profile": "AI architect and product builder specialising in designing and delivering production AI systems that move from concept to deployment with minimal overhead. Focused on execution-first AI - building systems that automate workflows, orchestrate multi-step processes, and integrate directly into products to deliver measurable outcomes. Strong bias towards shipping real systems rather than prototypes.",
+    "capabilities": [
+        "AI systems architecture",
+        "Applied AI system design",
+        "Product direction and AI strategy",
+        "Workflow automation at scale",
+        "Multi-step agent orchestration",
+        "LLM integration and routing",
+        "Retrieval and structured data systems",
+        "Deterministic scoring and evaluation systems",
+        "SaaS platform architecture",
+        "Rapid MVP development",
+        "AI product engineering"
+    ],
+    "core_skills": [
+        "LLM orchestration and tool usage",
+        "Agent-based execution systems",
+        "Structured data pipelines",
+        "Retrieval systems (RAG-style architectures)",
+        "Deterministic + hybrid AI systems",
+        "Python backend engineering",
+        "Next.js (v16+) frontend systems",
+        "TypeScript and Node.js",
+        "REST API design",
+        "System evaluation and scoring frameworks"
+    ],
+    "tech_stack": {
+        "languages": [
+            "Python",
+            "TypeScript",
+            "JavaScript"
+        ],
+        "frameworks": [
+            "Next.js",
+            "Node.js"
+        ],
+        "ai_tools": [
+            "OpenAI",
+            "Anthropic",
+            "OpenRouter",
+            "LLM APIs"
+        ],
+        "infrastructure": [
+            "Linux",
+            "VPS (DigitalOcean)",
+            "Docker"
+        ],
+        "backend": [
+            "Convex",
+            "REST APIs"
+        ],
+        "frontend": [
+            "Next.js",
+            "Tailwind CSS",
+            "ShadCN UI"
+        ],
+        "other": [
+            "Clerk (auth)",
+            "Stripe (billing)",
+            "GitHub Actions"
+        ]
+    },
+    "experience": [
+        {
+            "role": "AI Architect & Founder",
+            "company": "McCaigs Group",
+            "dates": "2023 - Present",
+            "summary": "Designing and delivering production AI systems focused on execution, automation, and real workflow impact.",
+            "responsibilities": [
+                "Designed and deployed AI systems that execute full workflows from input through to structured output without manual intervention",
+                "Architected multi-step agent pipelines capable of task planning, execution, and output validation",
+                "Built AI-powered SaaS platforms for CV optimisation, job matching, and recruitment workflows",
+                "Developed MCP-based structured data systems enabling AI interaction with external job platforms",
+                "Designed deterministic scoring systems for candidate-job fit evaluation",
+                "Implemented credit-based AI usage models for transparent scaling and cost control",
+                "Built production backend systems on VPS/Linux with persistent execution services",
+                "Delivered systems under tight time constraints (often within days) with production readiness"
+            ]
+        },
+        {
+            "role": "AI Product Engineer",
+            "company": "StudentlyAI | CareersAI | RecruitersAI",
+            "dates": "2023 - Present",
+            "summary": "Building AI-driven SaaS platforms across education and recruitment verticals.",
+            "responsibilities": [
+                "Designed AI document generation systems for structured writing workflows",
+                "Built deterministic job matching and ranking engines with explainable scoring",
+                "Architected shared SaaS data layers across multiple AI products",
+                "Developed reusable architecture patterns enabling rapid MVP deployment",
+                "Built structured ingestion pipelines converting unstructured data into usable formats",
+                "Integrated AI capabilities directly into product features rather than standalone tools"
+            ]
+        },
+        {
+            "role": "Founder",
+            "company": "UniSearch",
+            "dates": "1998 - 2003",
+            "summary": "Built one of the earliest EdTech search and discovery platforms.",
+            "responsibilities": [
+                "Designed structured search and discovery systems before modern search engines matured",
+                "Built data ingestion and categorisation pipelines for educational content",
+                "Delivered a functional early-stage EdTech platform with real user utility",
+                "Led both technical development and commercial direction"
+            ]
+        },
+        {
+            "role": "Web Developer",
+            "company": "Skinny Creative",
+            "dates": "2008 - 2015",
+            "summary": "Delivered full-stack web development across multiple client projects.",
+            "responsibilities": [
+                "Built and maintained web platforms across a range of industries",
+                "Established strong foundations in frontend and backend architecture",
+                "Focused on usability, maintainability, and scalable design patterns"
+            ]
+        },
+        {
+            "role": "Operations Leadership",
+            "company": "Sodexo Prestige",
+            "dates": "2004 - 2023",
+            "summary": "Held senior operational roles in high-pressure commercial environments.",
+            "responsibilities": [
+                "Managed large-scale operations and delivery environments",
+                "Developed strong stakeholder management and execution skills",
+                "Delivered consistent performance under time and operational constraints"
+            ]
+        }
+    ],
+    "key_systems": [
+        "AI execution and orchestration platform (agent-based)",
+        "AI job matching and ranking engine with deterministic scoring",
+        "MCP-based job data server for structured AI interaction",
+        "AI CV optimisation and document generation system",
+        "Autonomous job search and ingestion pipeline",
+        "AI interview simulation and evaluation system"
+    ],
+    "products": [
+        "CareersAI (current build)",
+        "RecruitersAI (in build)",
+        "StudentlyAI (early stage)",
+        "TeachersAI (planned)",
+        "StudentsAI (planned) ",
+        "ParentsAI (planned)",
+        "PupilsAI (planned)",
+        "DavidRobertson-Pro"
+    ],
+    "projects": [
+        {
+            "name": "AI Jobs Pipeline",
+            "url": "https://myaijobs.site",
+            "description": "Automated system that scans multiple UK job sources daily, scores roles against profile fit, and publishes structured reports.",
+            "features": [
+                "Multi-source ingestion",
+                "Deterministic scoring engine",
+                "Automated reporting to GitHub",
+                "Convex ingestion and frontend rendering"
+            ]
+        },
+        {
+            "name": "InterviewsAI",
+            "description": "AI-driven interview system with multi-step evaluation, transcription, scoring, and adaptive questioning.",
+            "features": [
+                "Real-time evaluation",
+                "Structured scoring outputs",
+                "Adaptive questioning logic",
+                "Python backend with Next.js frontend"
+            ]
+        }
+    ],
+    "achievements": [
+        {
+            "title": "Selected for EIE14",
+            "organisation": "Engage Invest Exploit",
+            "description": "Selected for the EIE14 programme run by Informatics Ventures, now part of The Bayes Centre, University of Edinburgh"
+        },
+        {
+            "title": "Selected for EIE22",
+            "organisation": "Engage Invest Exploit",
+            "description": "Selected for the EIE22 programme run by Informatics Ventures, now part of The Bayes Centre, University of Edinburgh"
+        },
+        {
+            "title": "Techscaler Graduate",
+            "organisation": "Techscaler",
+            "year": 2025,
+            "date": "December 2025"
+        },
+        {
+            "title": "The Pitch UK Digital Marketing Award Winner",
+            "organisation": "The Pitch UK",
+            "year": 2015
+        },
+        {
+            "title": "Top-ranked Marketing GPT",
+            "description": "Custom GPT ranked #1 on Google for 'Marketing GPT'"
+        }
+    ],
+    "education": {
+        "degree": "BEng Yacht and Powercraft Design",
+        "institution": "Solent University",
+        "dates": "1998 - 2002"
+    },
+    "engagement_preferences": {
+        "work_type": [
+            "Full-time employment",
+            "Short-term engagements (2–6 weeks)",
+            "MVP builds",
+            "AI system design",
+            "Technical advisory"
+        ],
+        "location": [
+            "Remote",
+            "UK-based hybrid"
+        ],
+        "rates": {
+            "day_rate": "£650 - £1000",
+            "mvp_projects": "£3000 - £45000",
+            "full_time_salary": "£80,000+"
+        },
+        "full_time_preferences": {
+            "salary_floor": "£80,000",
+            "flexibility": "May consider lower salary depending on working hours, scope, and overall employment terms",
+            "ideal_roles": [
+                "Senior AI Engineer",
+                "AI Architect",
+                "Applied AI Engineer",
+                "AI Systems Engineer"
+            ]
+        },
+        "focus": "High-impact work where speed, clarity, and delivery matter. Open to both contract and permanent roles where AI is central to the product or business."
+    }
+}

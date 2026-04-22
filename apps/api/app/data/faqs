@@ -1,0 +1,29 @@
+{
+  "faqs": [
+    {
+      "id": "best_roles",
+      "question": "What kinds of roles is David best suited for?",
+      "answer": "David is best suited for senior AI engineering, AI solutions architecture, applied AI platform work, AI product engineering, and roles where product thinking and systems delivery overlap."
+    },
+    {
+      "id": "technical_strengths",
+      "question": "What is David strongest at technically?",
+      "answer": "David is strongest at applied AI systems design, Python backend work, Next.js product builds, workflow automation, architecture, and turning ideas into working products quickly."
+    },
+    {
+      "id": "production_systems",
+      "question": "Has David built production-minded systems?",
+      "answer": "Yes. His work is consistently product-oriented and architecture-led, with a focus on shipping usable systems rather than prototypes that go nowhere."
+    },
+    {
+      "id": "full_stack",
+      "question": "Is David full-stack?",
+      "answer": "Yes. David works across backend, frontend, product structure, architecture, and user-facing delivery. His strongest stack combines Python on the backend with Next.js and TypeScript on the frontend."
+    },
+    {
+      "id": "why_different",
+      "question": "What makes David different from a typical engineer?",
+      "answer": "He combines technical depth with product instincts, speed of execution, applied AI systems thinking, and the ability to shape a concept into a credible working product quickly."
+    }
+  ]
+}

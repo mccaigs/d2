@@ -1,0 +1,24 @@
+{
+  "achievements": [
+    {
+      "title": "Rapid MVP delivery",
+      "description": "Known for moving quickly from concept to working system, especially in AI product and workflow contexts."
+    },
+    {
+      "title": "Applied AI product design",
+      "description": "Builds products where AI is part of a system, not just a layer of generated text."
+    },
+    {
+      "title": "Architecture plus execution",
+      "description": "Combines high-level architecture thinking with practical hands-on implementation."
+    },
+    {
+      "title": "Recruitment and matching systems focus",
+      "description": "Has built and designed multiple concepts around role matching, candidate fit, recruiter workflows, and structured evaluation."
+    },
+    {
+      "title": "Digital Marketing Award Winner - The Pitch UK 2015",
+      "description": "He created a successful digital marketing campaign that won the prestigious The Pitch UK 2015 award."
+    }
+  ]
+}

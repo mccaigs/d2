@@ -1,0 +1,81 @@
+{
+  "name": "David Robertson",
+  "headline": "AI Consultant | AI Architect | Applied AI Systems Builder",
+  "location": "Scotland, UK",
+  "website": "https://davidrobertson.pro",
+  "summary": "David Robertson is a senior AI consultant and systems builder focused on applied AI, full-stack product development, architecture, and workflow automation. He is strongest where product thinking, engineering delivery, and AI systems design overlap.",
+  "positioning": [
+    "Senior AI Architect",
+    "Applied AI Systems Builder",
+    "AI Consultant",
+    "Product-minded Engineer",
+    "Solutions-oriented Technical Leader"
+  ],
+  "core_strengths": [
+    "Applied AI systems design",
+    "Python backend engineering",
+    "Next.js product development",
+    "Full-stack SaaS architecture",
+    "Workflow automation",
+    "Agentic systems thinking",
+    "Product strategy and execution",
+    "Rapid MVP delivery"
+  ],
+  "preferred_roles": [
+    "Senior AI Engineer",
+    "AI Solutions Architect",
+    "Applied AI Architect",
+    "AI Product Engineer",
+    "Founding AI Engineer",
+    "Technical Product Builder"
+  ],
+  "availability_summary": "Open to senior AI, architecture, and product engineering roles, particularly where applied AI, systems design, and end-to-end delivery overlap.",
+  "contact_cta": "If you'd like to discuss a project, the best next step is to share a short outline of the scope, timeline, and goals through the contact form.",
+  "stack_highlight": "Python backend + Next.js frontend for fast, production-ready delivery",
+  "engagement_options": [
+    {
+      "type": "Short project",
+      "description": "1–5 day engagements to build or validate a specific feature or workflow"
+    },
+    {
+      "type": "MVP build",
+      "description": "End-to-end delivery of a small platform or product using Python and Next.js"
+    },
+    {
+      "type": "AI system design",
+      "description": "Architecture and implementation of applied AI workflows and pipelines"
+    },
+    {
+      "type": "Technical advisory",
+      "description": "Senior guidance on architecture, product direction, AI workflows, and delivery strategy"
+    }
+  ],
+  "custom_services": [
+    {
+      "name": "Short project",
+      "description": "1–5 day focused engagements to build, validate, or unblock a specific feature, workflow, or AI capability.",
+      "pricing": "£650–£850/day"
+    },
+    {
+      "name": "MVP build",
+      "description": "End-to-end delivery of a small platform or product using Python and Next.js, with applied AI where needed.",
+      "pricing": "Typically £3k–£15k fixed or milestone-based"
+    },
+    {
+      "name": "AI system design",
+      "description": "Architecture and implementation of applied AI workflows, pipelines, evaluation layers, and supporting systems.",
+      "pricing": "£750–£1,000/day"
+    },
+    {
+      "name": "Technical advisory",
+      "description": "Senior guidance on architecture, product direction, AI workflows, delivery strategy, and technical trade-offs.",
+      "pricing": "£750–£1,000/day"
+    }
+  ],
+  "pricing_notes": "Rates vary depending on scope, urgency, complexity, and whether the work is advisory, build-led, or end-to-end delivery.",
+  "high_intent_keywords": [
+    "hire", "rates", "day rate", "pricing", "quote", "budget",
+    "contact", "get in touch", "discuss a project", "start a project",
+    "work with david", "help us build"
+  ]
+}

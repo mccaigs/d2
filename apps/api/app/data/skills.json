@@ -1,0 +1,82 @@
+{
+  "technical_skills": [
+    {
+      "name": "Python",
+      "category": "backend",
+      "strength": "strong",
+      "notes": "Used for backend systems, automation, deterministic pipelines, and applied AI services."
+    },
+    {
+      "name": "FastAPI",
+      "category": "backend",
+      "strength": "strong",
+      "notes": "Used for typed API services and production-minded backend architecture."
+    },
+    {
+      "name": "Next.js",
+      "category": "frontend",
+      "strength": "strong",
+      "notes": "Used for modern full-stack web applications and polished product interfaces."
+    },
+    {
+      "name": "TypeScript",
+      "category": "frontend",
+      "strength": "strong",
+      "notes": "Used across frontend architecture and production application development."
+    },
+    {
+      "name": "Tailwind CSS",
+      "category": "frontend",
+      "strength": "strong",
+      "notes": "Used for high-speed UI implementation and premium design systems."
+    },
+    {
+      "name": "Convex",
+      "category": "backend",
+      "strength": "strong",
+      "notes": "Used for realtime backend infrastructure, data modelling, and product builds."
+    },
+    {
+      "name": "Clerk",
+      "category": "auth",
+      "strength": "strong",
+      "notes": "Used for authentication flows in SaaS products."
+    },
+    {
+      "name": "Stripe",
+      "category": "payments",
+      "strength": "strong",
+      "notes": "Used for SaaS billing, subscriptions, and commercial product setup."
+    },
+    {
+      "name": "Agentic workflows",
+      "category": "ai",
+      "strength": "strong",
+      "notes": "Experienced in designing AI-assisted and agent-style workflows."
+    },
+    {
+      "name": "MCP",
+      "category": "ai",
+      "strength": "strong",
+      "notes": "Works with Model Context Protocol concepts and tooling patterns."
+    },
+    {
+      "name": "LLM systems",
+      "category": "ai",
+      "strength": "strong",
+      "notes": "Focused on applied AI systems design rather than just model usage."
+    },
+    {
+      "name": "Product architecture",
+      "category": "architecture",
+      "strength": "strong",
+      "notes": "Combines product thinking with engineering delivery and systems design."
+    }
+  ],
+  "working_style": [
+    "Builds quickly from concept to working MVP",
+    "Prefers clear architecture and deterministic systems where possible",
+    "Balances technical depth with product usability",
+    "Designs for trust, clarity, and real-world deployment"
+  ]
+}

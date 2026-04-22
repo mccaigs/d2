@@ -1,0 +1,111 @@
+# davidrobertson.pro - Windsurf Rules
+
+## Project intent
+Build a recruiter-facing profile assistant for David Robertson using:
+- Next.js 16.2 frontend
+- Python FastAPI backend
+- deterministic retrieval and templated answers
+- no LLM dependency in MVP
+- streaming chat UX
+
+The product must feel premium, calm, editorial, and technically credible.
+
+## Architecture rules
+1. Keep frontend and backend clearly separated.
+2. Frontend lives in `apps/web`.
+3. Backend lives in `apps/api`.
+4. Backend must use a service-layer structure.
+5. Do not place business logic in route files.
+6. Routes should remain thin and orchestration-focused.
+7. Knowledge must come from structured JSON files in `apps/api/app/data`.
+8. Do not hardcode professional facts in frontend components.
+9. All answer generation must be deterministic and sourced from approved data.
+10. No hallucinated or open-domain responses.
+
+## Product rules
+1. This is not a general chatbot.
+2. The assistant may only answer questions about David Robertson’s:
+   - experience
+   - skills
+   - projects
+   - achievements
+   - preferred roles
+   - technical stack
+   - professional suitability
+3. If a question is out of scope, refuse clearly and politely.
+4. If evidence is weak, say so directly.
+5. Never fabricate credentials, dates, clients, employers, salary, or personal details.
+
+## Design rules
+1. The UI must feel premium and editorial.
+2. Use generous whitespace.
+3. Avoid dashboard clutter.
+4. Avoid neon colours, loud gradients, and gimmicky AI visuals.
+5. Headings should use serif typography.
+6. Body and UI should use a clean sans-serif.
+7. Cards should be soft and restrained.
+8. Motion should be subtle only.
+9. Prioritise readability over decoration.
+
+## Frontend rules
+1. Use Next.js App Router.
+2. Use TypeScript throughout.
+3. Use Tailwind for styling.
+4. Use shadcn/ui where useful, but do not over-componentise.
+5. Keep chat components modular and focused.
+6. Favour server components except where client state is required.
+7. Chat rendering may use client components for streaming interaction.
+8. Keep API access in `lib/api.ts`.
+9. Define shared frontend types in `lib/types.ts`.
+
+## Backend rules
+1. Use FastAPI and Pydantic.
+2. Use typed request and response models.
+3. Keep classifier, retriever, and answer builder separate.
+4. Validate all structured data at load time.
+5. Prefer explicit logic over clever abstractions.
+6. Keep streaming implementation simple and robust.
+7. Add tests for classifier, retriever, answer builder, and chat route.
+8. Use JSON as initial datastore unless a real need for SQLite emerges.
+
+## Content rules
+1. Tone should be clear, senior, direct, and grounded.
+2. Avoid hype language.
+3. Avoid generic AI jargon unless evidence-backed.
+4. Avoid overclaiming.
+5. All recruiter-facing prompts should sound credible and useful.
+
+## Coding rules
+1. Write clean, readable, production-minded code.
+2. Keep functions small and well named.
+3. Prefer explicit types.
+4. Avoid unnecessary abstraction in MVP.
+5. Leave concise comments only where they add value.
+6. Do not introduce dependencies unless they solve a real problem.
+7. Keep implementation boring where boring is better.
+
+## MVP build priorities
+1. Structured knowledge base
+2. Deterministic chat engine
+3. Streaming UX
+4. Premium visual design
+5. Profile and project pages
+6. Fit analysis later
+
+## Forbidden MVP paths
+1. Do not add a live LLM dependency.
+2. Do not add authentication.
+3. Do not add admin tooling.
+4. Do not add analytics dashboard.
+5. Do not build features before the core chat is working.
+6. Do not turn the product into a generic AI assistant.
+
+## Definition of success
+A recruiter should be able to visit the site and, within 2 minutes, understand:
+- what David does
+- what he has built
+- what he is strongest at
+- what kinds of roles suit him
+- why he is credible
+
+The site itself must act as proof of engineering and product capability.

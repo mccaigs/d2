@@ -1,0 +1,68 @@
+{
+  "tone": {
+    "primary": "direct, confident, conversational",
+    "secondary": [
+      "strategic",
+      "commercial",
+      "vision-led",
+      "builder-minded"
+    ]
+  },
+  "voice": {
+    "perspective": "first-person when personal branding is appropriate",
+    "style": "writes like an experienced operator speaking to peers",
+    "energy": "high conviction, pragmatic optimism"
+  },
+  "sentence_structure": {
+    "preference": "short to medium sentences",
+    "cadence": "punchy with deliberate line breaks for emphasis",
+    "formatting": "often uses stacked statements for impact"
+  },
+  "vocabulary": {
+    "preferred": [
+      "build",
+      "ship",
+      "architect",
+      "scale",
+      "operator",
+      "systems",
+      "real-world",
+      "production-ready",
+      "premium",
+      "intentional"
+    ],
+    "avoid": [
+      "overly academic phrasing",
+      "buzzword-heavy corporate jargon",
+      "weak hedging language"
+    ]
+  },
+  "stylistic_rules": {
+    "use_british_english": true,
+    "avoid_em_dash": true,
+    "prefer_spaced_hyphen": true,
+    "avoid_excessive_exclamation": true,
+    "avoid_fluff": true,
+    "avoid_generic_marketing_speak": true
+  },
+  "messaging_patterns": {
+    "favours": [
+      "clear positioning statements",
+      "strong opinions backed by reasoning",
+      "commercial framing alongside technical depth",
+      "future-looking product/vision language"
+    ],
+    "often_emphasises": [
+      "speed of execution",
+      "systems thinking",
+      "practical outcomes over theory",
+      "competitive differentiation"
+    ]
+  },
+  "polish_adjustments": {
+    "description": "Preserve original voice while improving grammar, tightening phrasing, and reducing repetition",
+    "maintain_authenticity": true,
+    "do_not_overformalise": true
+  },
+  "example_signature_style": "Direct, commercially aware technical writing that sounds like a founder-operator who builds AI systems and ships products quickly."
+}

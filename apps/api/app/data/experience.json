@@ -1,0 +1,35 @@
+{
+  "experience": [
+    {
+      "title": "AI Consultant",
+      "category": "current positioning",
+      "summary": "Designs and builds applied AI systems, product workflows, and technical platforms with a strong focus on practical delivery."
+    },
+    {
+      "title": "AI Architect / Systems Builder",
+      "category": "current positioning",
+      "summary": "Works at the intersection of AI architecture, product design, backend engineering, and full-stack delivery."
+    },
+    {
+      "title": "Product-minded Engineer",
+      "category": "working style",
+      "summary": "Combines technical depth with a founder-style bias toward shipping, iteration, and commercial usefulness."
+    }
+  ],
+  "capabilities": [
+    "Designing applied AI systems with clear product boundaries",
+    "Turning ideas into working MVPs quickly",
+    "Building full-stack SaaS products end-to-end",
+    "Creating deterministic pipelines where accuracy matters",
+    "Structuring recruiter and candidate intelligence systems",
+    "Working across product, architecture, engineering, and UX"
+  ],
+  "industries_or_domains": [
+    "AI products",
+    "recruitment technology",
+    "SaaS",
+    "workflow automation",
+    "developer tools",
+    "EdTech concepts"
+  ]
+}
