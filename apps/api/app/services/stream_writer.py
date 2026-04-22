@@ -136,6 +136,7 @@ async def stream_metadata(metadata: ChatMetadata) -> AsyncIterator[str]:
         "sources": [s.model_dump() for s in metadata.sources],
         "follow_ups": metadata.follow_ups,
         "intent": metadata.intent,
+        "cta": metadata.cta.model_dump() if metadata.cta else None,
         "show_contact_form": metadata.show_contact_form,
         "contact_reason": metadata.contact_reason,
     }

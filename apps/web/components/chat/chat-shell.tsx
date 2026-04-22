@@ -104,6 +104,7 @@ export function ChatShell() {
                   ...m,
                   sources: meta.sources,
                   followUps: meta.follow_ups,
+                  cta: meta.cta ?? null,
                   showContactForm: meta.show_contact_form ?? false,
                   contactReason: meta.contact_reason ?? null,
                 }

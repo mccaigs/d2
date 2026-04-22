@@ -1,9 +1,12 @@
+import re
 from typing import Literal
 
 Intent = Literal[
     "skills",
     "projects",
+    "projects_overview",
     "experience",
+    "experience_summary",
     "technical_stack",
     "role_fit",
     "strengths",
@@ -13,116 +16,363 @@ Intent = Literal[
     "engagement",
     "contact",
     "faq",
+    "profile_overview",
+    "capabilities",
+    "engagement_preferences",
     "unknown",
 ]
 
-# Phrase-level matches for high-intent contact / hiring-conversion signals.
-# If any of these appear in the query, we return `contact` immediately so
-# generic keyword scoring cannot out-vote a clear lead-capture signal.
+
+def _normalise(message: str) -> str:
+    text = re.sub(r"[^\w\s'.+-]", " ", (message or "").lower())
+    return re.sub(r"\s+", " ", text).strip()
+
+
 CONTACT_PHRASES: list[str] = [
-    # direct contact capture
-    "contact david", "contact details", "how do i contact",
-    "how can i contact", "how to contact", "how do i reach",
-    "how can i reach", "reach david", "get in touch", "in touch with david",
-    "email david", "david's email", "davids email", "email address",
-    "phone number", "mobile number",
-    # hiring / engagement conversion
-    "hire david", "work with david", "working with david",
-    "start a project", "discuss a project", "discuss the project",
-    "can we work together", "help us build", "build this for us",
-    "can david help us", "david help us build",
-    # rates / pricing / commercial
-    "david's rates", "davids rates", "his rates", "day rate", "day rates",
-    "day-rate", "what are the rates", "pricing", "price list", "quote",
-    "budget for", "availability for project",
+    "how do i contact david",
+    "how can i contact david",
+    "how do i reach david",
+    "how can i reach david",
+    "how to contact david",
+    "contact david",
+    "get in touch with david",
+    "get in touch",
+    "reach david",
+    "email david",
+    "david's email",
+    "davids email",
+    "email address",
+    "phone number",
+    "mobile number",
 ]
 
-# Single-token high-intent signals used both to disambiguate engagement
-# queries and to decide whether to show the contact-form CTA.
+PROFILE_PHRASES: list[str] = [
+    "who is david",
+    "tell me about david",
+    "about david robertson",
+    "what does david do",
+    "what does he do",
+    "introduce david",
+    "describe david",
+    "summarise david",
+    "summarize david",
+    "give me an overview of david",
+    "overview of david",
+]
+
+STACK_PHRASES: list[str] = [
+    "what stack does david use",
+    "what stack does he use",
+    "what tech stack does david use",
+    "what tech stack does he use",
+    "what is david's technical stack",
+    "what is his technical stack",
+    "what tools does david use",
+    "what technologies does david use",
+]
+
+PROJECT_OVERVIEW_PHRASES: list[str] = [
+    "what has david built",
+    "what has he built",
+    "what has david made",
+    "what has he made",
+    "what has david created",
+    "what has he created",
+    "what has david shipped",
+    "what projects has david built",
+    "what projects has he built",
+    "what has david actually built",
+    "what has he actually built",
+]
+
+EXPERIENCE_SUMMARY_PHRASES: list[str] = [
+    "summarise his experience",
+    "summarize his experience",
+    "summarise david's experience",
+    "summarize david's experience",
+    "experience summary",
+    "career summary",
+    "walk me through david's background",
+]
+
+CAPABILITY_PHRASES: list[str] = [
+    "what can david do",
+    "what can he do",
+    "what is david capable of",
+    "what is he capable of",
+    "what can david help with",
+    "what capabilities does david have",
+    "what capabilities does he have",
+]
+
+ENGAGEMENT_PREFERENCE_PHRASES: list[str] = [
+    "what roles is he open to",
+    "what roles is david open to",
+    "what role is he open to",
+    "what kind of work is he open to",
+    "what types of work is he open to",
+    "what types of work does david take on",
+    "what is david open to",
+    "what are david's day rates",
+    "what is david's day rate",
+    "what's david's day rate",
+    "what's david's pricing",
+    "what is david's pricing",
+    "what are his rates",
+]
+
+GOOD_FIT_PHRASES: list[str] = [
+    "what would make this a good project for david",
+    "what kinds of work is david best suited to",
+    "what kind of work is david best suited to",
+    "is this the sort of project david would be good for",
+    "what makes a good project for david",
+    "what sort of role suits david",
+    "what type of project suits david",
+    "would david be a good fit",
+    "is david right for this",
+    "what is david best at",
+    "where does david add the most value",
+    "what work suits david best",
+]
+
+HIGH_INTENT_PHRASES: list[str] = [
+    "hire david",
+    "work with david",
+    "working with david",
+    "discuss a project",
+    "start a project",
+    "help us build",
+    "build this for us",
+    "can david help us",
+    "get david involved",
+    "speak to david",
+    "talk to david",
+    "engage david",
+    "bring david in",
+    "get in touch",
+    "contact david",
+]
+
+# Tokens that signal genuine commercial / hire intent.
+# Deliberately excludes broad terms like "project" or "budget" that
+# appear in exploratory questions without real hiring signal.
 HIGH_INTENT_TOKENS: list[str] = [
-    "hire", "rates", "pricing", "quote", "budget",
-    "contact", "discuss",
+    "hire",
+    "pricing",
+    "rates",
+    "quote",
+    "contact",
+    "engage",
+]
+
+PHRASE_OVERRIDES: list[tuple[str, list[str]]] = [
+    ("contact", CONTACT_PHRASES),
+    ("experience_summary", EXPERIENCE_SUMMARY_PHRASES),
+    ("profile_overview", PROFILE_PHRASES),
+    ("technical_stack", STACK_PHRASES),
+    ("projects_overview", PROJECT_OVERVIEW_PHRASES),
+    ("capabilities", CAPABILITY_PHRASES),
+    ("engagement_preferences", ENGAGEMENT_PREFERENCE_PHRASES),
+    ("role_fit", GOOD_FIT_PHRASES),
 ]
 
 KEYWORD_MAP: dict[Intent, list[str]] = {
     "skills": [
-        "skill", "skills", "know", "language", "framework", "technology",
-        "technologies", "proficient", "familiar", "expertise", "capable",
-        "python", "typescript", "next.js", "nextjs", "fastapi", "tailwind",
-        "convex", "clerk", "stripe", "react",
+        "skill",
+        "skills",
+        "know",
+        "language",
+        "framework",
+        "technology",
+        "technologies",
+        "proficient",
+        "familiar",
+        "expertise",
+        "python",
+        "typescript",
+        "fastapi",
+        "next.js",
+        "nextjs",
+        "react",
     ],
     "technical_stack": [
-        "stack", "tech stack", "tooling", "backend", "frontend",
-        "database", "infrastructure", "architecture stack",
-        "built with", "build with", "technologies", "technology",
-        "uses for", "use for",
+        "stack",
+        "tech stack",
+        "technical stack",
+        "tooling",
+        "backend",
+        "frontend",
+        "infrastructure",
+        "architecture stack",
+        "built with",
+        "build with",
+        "technology",
+        "technologies",
+    ],
+    "projects_overview": [
+        "built",
+        "shipped",
+        "created",
+        "developed",
+        "made",
+        "projects",
+        "systems",
+        "products",
     ],
     "projects": [
-        "project", "projects", "built", "build", "created",
-        "developed", "careersai", "recruitersai", "interviewsai", "uk jobs",
-        "ai jobs", "ai ide", "product", "platform", "system", "app",
+        "careersai",
+        "recruitersai",
+        "interviewsai",
+        "studentlyai",
+        "jobs pipeline",
+        "project",
+        "platform",
+        "app",
         "application",
     ],
+    "experience_summary": [
+        "background",
+        "career",
+        "history",
+        "experience",
+        "summary",
+        "worked",
+        "professional",
+        "roles",
+    ],
     "experience": [
-        "experience", "background", "career", "history", "worked",
-        "work", "professional", "industry", "domain", "sector", "years",
-        "role", "position", "job", "employed",
+        "industry",
+        "domain",
+        "sector",
+        "years",
+        "employed",
+        "career history",
     ],
     "strengths": [
-        "strong", "strength", "strongest", "best at", "good at",
-        "excel", "excellent", "specialise", "specialize", "expert",
-        "leading", "notable",
+        "strong",
+        "strength",
+        "strongest",
+        "best at",
+        "good at",
+        "excel",
+        "excellent",
+        "specialise",
+        "specialize",
+        "expert",
     ],
     "role_fit": [
-        "fit", "suit", "suited", "suitable", "match", "good fit", "right for",
-        "would david", "can david", "right candidate",
-        "job description", "jd",
+        "fit",
+        "suit",
+        "suited",
+        "suitable",
+        "match",
+        "good fit",
+        "right for",
+        "candidate",
+        "job description",
+        "jd",
     ],
     "preferred_roles": [
-        "preferred role", "preferred roles", "looking for", "wants",
-        "open to", "interest", "interested in", "target role", "ideal role",
-        "seeking", "available for",
+        "preferred role",
+        "preferred roles",
+        "ideal role",
+        "ideal roles",
+        "target role",
+        "target roles",
     ],
     "availability": [
-        "available", "availability", "start", "starting", "when",
-        "notice", "permanent", "remote", "hybrid", "onsite", "relocate",
+        "available",
+        "availability",
+        "start",
+        "starting",
+        "notice",
     ],
     "achievements": [
-        "achievement", "achievements", "accomplished", "award", "won",
-        "delivered", "proud", "notable", "highlight", "milestone",
+        "achievement",
+        "achievements",
+        "accomplished",
+        "award",
+        "won",
+        "milestone",
     ],
     "engagement": [
-        "hire", "hired", "hire him",
-        "short project", "short projects", "small project",
-        "freelance", "contract", "contracting", "consulting", "consultancy",
-        "mvp build", "mvp", "short-term", "short term",
-        "ad hoc", "ad-hoc", "engagement", "engage david",
-        "advisory", "one-off", "one off",
+        "freelance",
+        "contract",
+        "contracting",
+        "consulting",
+        "consultancy",
+        "mvp",
+        "mvp build",
+        "short project",
+        "short-term",
+        "advisory",
+        "engagement",
     ],
     "faq": [
-        "different", "unique", "why david", "why hire", "what makes",
-        "full stack", "fullstack", "full-stack", "production",
+        "different",
+        "unique",
+        "why david",
+        "why hire",
+        "what makes",
+        "full stack",
+        "full-stack",
+        "production",
+    ],
+    "profile_overview": [
+        "overview",
+        "profile",
+        "who",
+        "about",
+        "summary",
+        "introduce",
+        "describe",
+    ],
+    "capabilities": [
+        "capable",
+        "capability",
+        "capabilities",
+        "competencies",
+        "offer",
+        "services",
+        "deliver",
+        "help with",
+    ],
+    "engagement_preferences": [
+        "open to",
+        "types of work",
+        "kind of work",
+        "day rate",
+        "day rates",
+        "rates",
+        "pricing",
+        "salary",
+        "full-time",
+        "full time",
+        "permanent",
+        "remote",
+        "hybrid",
+        "budget",
     ],
 }
 
 
 def classify(message: str) -> Intent:
-    text = message.lower()
+    text = _normalise(message)
+    if not text:
+        return "unknown"
 
-    # High-priority phrase override: strong commercial / contact signals
-    # should always route to the contact intent regardless of noise elsewhere.
-    for phrase in CONTACT_PHRASES:
-        if phrase in text:
-            return "contact"
+    for intent, phrases in PHRASE_OVERRIDES:
+        if any(phrase in text for phrase in phrases):
+            return intent  # type: ignore[return-value]
 
     scores: dict[Intent, int] = {intent: 0 for intent in KEYWORD_MAP}
-
     for intent, keywords in KEYWORD_MAP.items():
-        for kw in keywords:
-            if kw in text:
+        for keyword in keywords:
+            if keyword in text:
                 scores[intent] += 1
 
-    best_intent = max(scores, key=lambda i: scores[i])
+    best_intent = max(scores, key=lambda item: scores[item])
     if scores[best_intent] == 0:
         return "unknown"
 
@@ -130,12 +380,7 @@ def classify(message: str) -> Intent:
 
 
 def has_high_intent(message: str) -> bool:
-    """True when the query contains clear commercial / conversion signals.
-
-    Used by the chat route to decide whether to surface the contact-form CTA
-    for `engagement` intents that sit adjacent to a direct contact request.
-    """
-    text = message.lower()
-    if any(phrase in text for phrase in CONTACT_PHRASES):
+    text = _normalise(message)
+    if any(phrase in text for phrase in HIGH_INTENT_PHRASES):
         return True
-    return any(tok in text for tok in HIGH_INTENT_TOKENS)
+    return any(token in text for token in HIGH_INTENT_TOKENS)

@@ -83,12 +83,12 @@ export default function HomePage() {
               Ask the assistant
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <a
-              href="mailto:hello@davidrobertson.pro"
+            <Link
+              href="/contact"
               className="px-6 py-3 border border-stone-300 text-stone-700 rounded-xl text-sm font-medium hover:border-stone-500 transition-colors"
             >
-              Get in touch
-            </a>
+              Open contact form
+            </Link>
           </div>
         </div>
       </section>
@@ -176,12 +176,12 @@ export default function HomePage() {
               Ask the assistant
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <a
-              href="mailto:hello@davidrobertson.pro"
+            <Link
+              href="/contact"
               className="px-6 py-3 border border-stone-600 text-stone-300 rounded-xl text-sm font-medium hover:border-stone-400 hover:text-stone-100 transition-colors"
             >
-              Send an email
-            </a>
+              Open contact form
+            </Link>
           </div>
         </div>
       </section>

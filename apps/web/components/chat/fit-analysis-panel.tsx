@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { analyseFit } from "@/lib/api";
 import type { FitResponse } from "@/lib/types";
 
@@ -289,6 +291,23 @@ export function FitAnalysisPanel({ onClose }: FitAnalysisPanelProps) {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Fit-to-contact bridge — only for strong/good fit with medium+ confidence */}
+            {result.overall_score >= 70 &&
+              (result.confidence === "high" || result.confidence === "medium") && (
+              <div className="rounded-xl border border-stone-200 bg-white px-5 py-4">
+                <p className="text-sm text-stone-700 leading-relaxed">
+                  This looks like a strong match. Want David to take a closer look at this role?
+                </p>
+                <Link
+                  href="/contact?intent=fit_analysis"
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-amber-900 transition-colors hover:text-amber-700"
+                >
+                  <span>Start a conversation</span>
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
             )}
 

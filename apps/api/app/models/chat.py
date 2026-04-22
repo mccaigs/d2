@@ -11,9 +11,16 @@ class SourceChip(BaseModel):
     category: str
 
 
+class ChatCta(BaseModel):
+    type: Literal["link"]
+    label: str
+    href: str
+
+
 class ChatMetadata(BaseModel):
     sources: list[SourceChip]
     follow_ups: list[str]
     intent: str
+    cta: ChatCta | None = None
     show_contact_form: bool = False
     contact_reason: str | None = None

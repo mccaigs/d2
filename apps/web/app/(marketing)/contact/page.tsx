@@ -1,98 +1,85 @@
+import { Suspense } from "react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, Mail, MessageSquare } from "lucide-react";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
+import { ContactForm } from "@/components/contact/contact-form";
 
 export const metadata = {
-  title: "Contact — David Robertson",
-  description: "Get in touch with David Robertson for role discussions, project opportunities, or general inquiries.",
+  title: "Contact - David Robertson",
+  description:
+    "Use the contact form to discuss roles, projects, and advisory work with David Robertson.",
 };
+
+const ENGAGEMENT_NOTES = [
+  "Senior AI engineering and architecture roles",
+  "Short, focused MVP or workflow builds",
+  "Applied AI system design and technical advisory",
+];
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-[#faf8f0] text-stone-900">
-      <nav className="flex items-center justify-between px-6 sm:px-12 py-5 border-b border-stone-200">
-        <Link href="/" className="flex items-center gap-2 text-sm text-stone-500 hover:text-stone-800 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to home</span>
-        </Link>
-      </nav>
+    <div className="min-h-screen overflow-hidden bg-[#faf8f0] text-stone-900">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_top_left,_rgba(217,119,6,0.15),_transparent_48%),radial-gradient(circle_at_top_right,_rgba(120,113,108,0.12),_transparent_42%)]" />
 
-      <main className="max-w-3xl mx-auto px-6 sm:px-12 py-16">
-        <h1 className="font-serif text-4xl sm:text-5xl text-stone-900 mb-6">
-          Get in Touch
-        </h1>
-        <p className="text-stone-600 text-lg leading-relaxed mb-12">
-          Open to senior AI engineering, architecture, and product engineering roles. 
-          Particularly interested in positions where applied AI, systems design, and 
-          end-to-end delivery overlap.
-        </p>
+      <SiteHeader />
 
-        <div className="space-y-6">
-          <div className="p-6 bg-[#fdfcf8] border border-stone-200 rounded-2xl">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
-                <MessageSquare className="w-5 h-5 text-amber-700" />
-              </div>
-              <div className="flex-1">
-                <h2 className="font-serif text-xl text-stone-900 mb-2">
-                  Use the Profile Assistant
-                </h2>
-                <p className="text-stone-600 leading-relaxed mb-4">
-                  Ask questions about skills, experience, projects, and role fit. 
-                  The assistant provides grounded answers from structured professional data.
-                </p>
+      <main className="relative mx-auto max-w-6xl px-6 pb-20 pt-14 sm:px-12 sm:pt-20">
+        <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+          <section className="max-w-2xl motion-safe:animate-fade-up">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-stone-400">
+              Contact
+            </p>
+            <h1 className="mt-5 font-serif text-5xl leading-[1.02] text-balance text-stone-900 sm:text-6xl">
+              A calmer way to start the conversation.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-9 text-stone-600">
+              Use the form to share the role, project, or advisory brief. Keep it
+              concise but specific enough to be useful: scope, timing, and what a
+              good outcome looks like.
+            </p>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              {ENGAGEMENT_NOTES.map((item) => (
+                <div
+                  key={item}
+                  className="rounded-[1.75rem] bg-[#fcfbf5] px-5 py-5 text-sm leading-7 text-stone-600 shadow-[0_14px_40px_rgba(28,25,23,0.05)]"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 rounded-[2rem] bg-stone-900 px-6 py-6 text-stone-50 shadow-[0_20px_60px_rgba(28,25,23,0.14)] motion-safe:animate-fade-up-delayed">
+              <p className="text-xs uppercase tracking-[0.28em] text-stone-400">
+                Before you send
+              </p>
+              <p className="mt-4 max-w-xl text-base leading-8 text-stone-200">
+                The strongest enquiries tend to explain the decision in front of
+                you: who the work is for, what needs to ship, and where David would
+                add the most leverage.
+              </p>
+              <div className="mt-5">
                 <Link
                   href="/chat"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-stone-900 text-stone-50 rounded-xl text-sm font-medium hover:bg-stone-800 transition-colors"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-stone-100 transition-colors hover:text-white"
                 >
-                  Open assistant
+                  Prefer to explore fit first
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="p-6 bg-[#fdfcf8] border border-stone-200 rounded-2xl">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
-                <Mail className="w-5 h-5 text-amber-700" />
-              </div>
-              <div className="flex-1">
-                <h2 className="font-serif text-xl text-stone-900 mb-2">
-                  Send an Email
-                </h2>
-                <p className="text-stone-600 leading-relaxed mb-4">
-                  For direct conversations about roles, projects, or collaboration opportunities.
-                </p>
-                <a
-                  href="mailto:hello@davidrobertson.pro"
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-stone-300 text-stone-700 rounded-xl text-sm font-medium hover:border-stone-500 transition-colors"
-                >
-                  hello@davidrobertson.pro
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-12 p-6 bg-stone-50 border border-stone-200 rounded-2xl">
-          <h3 className="font-serif text-lg text-stone-900 mb-3">
-            What to expect
-          </h3>
-          <ul className="space-y-2 text-sm text-stone-600">
-            <li className="flex gap-2">
-              <span className="text-amber-600/70 mt-0.5 shrink-0">—</span>
-              <span>Responses typically within 24-48 hours</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-amber-600/70 mt-0.5 shrink-0">—</span>
-              <span>Open to discussing senior AI and architecture roles</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-amber-600/70 mt-0.5 shrink-0">—</span>
-              <span>Based in Scotland, UK — open to remote, hybrid, or relocation discussions</span>
-            </li>
-          </ul>
+          <section className="lg:pt-6">
+            <Suspense>
+              <ContactForm />
+            </Suspense>
+          </section>
         </div>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

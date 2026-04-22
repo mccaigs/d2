@@ -9,6 +9,63 @@ from app.services.classifier import Intent
 _DATA_DIR = Path(__file__).parent.parent / "data"
 
 # ---------------------------------------------------------------------------
+# CV data loader — cached in module scope to avoid re-reading per request
+# ---------------------------------------------------------------------------
+_cv_cache: dict[str, Any] | None = None
+
+
+def _load_cv() -> dict[str, Any]:
+    global _cv_cache
+    if _cv_cache is None:
+        _cv_cache = _load("david_cv.json")
+    return _cv_cache
+
+
+def get_profile_summary() -> dict[str, Any]:
+    cv = _load_cv()
+    return {
+        "name": cv.get("name", ""),
+        "title": cv.get("title", ""),
+        "location": cv.get("location", ""),
+        "profile": cv.get("profile", ""),
+        "capabilities": cv.get("capabilities", []),
+    }
+
+
+def get_capabilities() -> dict[str, Any]:
+    cv = _load_cv()
+    return {
+        "capabilities": cv.get("capabilities", []),
+        "core_skills": cv.get("core_skills", []),
+        "key_systems": cv.get("key_systems", []),
+    }
+
+
+def get_core_skills() -> list[str]:
+    cv = _load_cv()
+    return cv.get("core_skills", [])
+
+
+def get_tech_stack() -> dict[str, Any]:
+    cv = _load_cv()
+    return cv.get("tech_stack", {})
+
+
+def get_experience() -> list[dict[str, Any]]:
+    cv = _load_cv()
+    return cv.get("experience", [])
+
+
+def get_projects() -> list[dict[str, Any]]:
+    cv = _load_cv()
+    return cv.get("projects", [])
+
+
+def get_engagement_preferences() -> dict[str, Any]:
+    cv = _load_cv()
+    return cv.get("engagement_preferences", {})
+
+# ---------------------------------------------------------------------------
 # Synonym groups — any token in a group is treated as equivalent to all others
 # ---------------------------------------------------------------------------
 _SYNONYM_GROUPS: list[list[str]] = [
@@ -213,9 +270,9 @@ def retrieve(intent: Intent, message: str) -> tuple[dict[str, Any], list[SourceC
         sources.append(SourceChip(label="Skills", category="skills"))
 
     elif intent == "technical_stack":
-        raw = _load("skills.json")
-        data["technical_skills"] = raw.get("technical_skills", [])
-        sources.append(SourceChip(label="Technical Stack", category="skills"))
+        data["tech_stack"] = get_tech_stack()
+        data["core_skills"] = get_core_skills()
+        sources.append(SourceChip(label="CV Stack", category="cv"))
 
     elif intent == "projects":
         raw = _load("projects.json")
@@ -227,12 +284,24 @@ def retrieve(intent: Intent, message: str) -> tuple[dict[str, Any], list[SourceC
         )
         sources.append(SourceChip(label="Projects", category="projects"))
 
+    elif intent == "projects_overview":
+        cv = _load_cv()
+        data["projects"] = get_projects()
+        data["key_systems"] = cv.get("key_systems", [])
+        data["products"] = cv.get("products", [])
+        sources.append(SourceChip(label="CV Projects", category="cv"))
+
     elif intent == "experience":
         raw = _load("experience.json")
         data["experience"] = raw.get("experience", [])
         data["capabilities"] = raw.get("capabilities", [])
         data["industries"] = raw.get("industries_or_domains", [])
         sources.append(SourceChip(label="Experience", category="experience"))
+
+    elif intent == "experience_summary":
+        data["experience"] = get_experience()
+        data["capabilities"] = get_capabilities().get("capabilities", [])
+        sources.append(SourceChip(label="CV Experience", category="cv"))
 
     elif intent == "strengths":
         profile = _load("profile.json")
@@ -245,6 +314,7 @@ def retrieve(intent: Intent, message: str) -> tuple[dict[str, Any], list[SourceC
         profile = _load("profile.json")
         job_titles = _load("job_titles.json")
         experience = _load("experience.json")
+        cv = _load_cv()
         data["positioning"] = profile.get("positioning", [])
         data["preferred_roles"] = profile.get("preferred_roles", [])
         titles = job_titles.get("relevant_job_titles", [])
@@ -257,6 +327,9 @@ def retrieve(intent: Intent, message: str) -> tuple[dict[str, Any], list[SourceC
             )
         data["relevant_job_titles"] = titles
         data["capabilities"] = experience.get("capabilities", [])
+        data["key_systems"] = cv.get("key_systems", [])
+        data["projects"] = cv.get("projects", [])
+        data["engagement_focus"] = cv.get("engagement_preferences", {}).get("focus", "")
         sources.append(SourceChip(label="Role Fit", category="profile"))
         sources.append(SourceChip(label="Preferred Roles", category="profile"))
 
@@ -284,29 +357,6 @@ def retrieve(intent: Intent, message: str) -> tuple[dict[str, Any], list[SourceC
         data["contact_cta"] = profile.get("contact_cta", "")
         sources.append(SourceChip(label="Engagement Options", category="profile"))
 
-    elif intent == "contact":
-        profile = _load("profile.json")
-        projects_raw = _load("projects.json").get("projects", [])
-        data["custom_services"] = profile.get("custom_services", [])
-        data["engagement_options"] = profile.get("engagement_options", [])
-        data["pricing_notes"] = profile.get("pricing_notes", "")
-        data["stack_highlight"] = profile.get("stack_highlight", "")
-        data["contact_cta"] = profile.get("contact_cta", "")
-        data["availability_summary"] = profile.get("availability_summary", "")
-        # Surface the strongest named proof for the conversion answer. Rank
-        # by query relevance so a query like "help us build recruiter tools"
-        # still surfaces the most relevant projects first.
-        if has_query:
-            data["projects"] = _rank(
-                projects_raw,
-                lambda p: _score_project(query_tokens, phrases, p),
-                n=3,
-            )
-        else:
-            data["projects"] = projects_raw[:3]
-        sources.append(SourceChip(label="Engagement & Pricing", category="profile"))
-        sources.append(SourceChip(label="Projects", category="projects"))
-
     elif intent == "achievements":
         raw = _load("achievements.json")
         data["achievements"] = raw.get("achievements", [])
@@ -321,6 +371,43 @@ def retrieve(intent: Intent, message: str) -> tuple[dict[str, Any], list[SourceC
             n=3,
         )
         sources.append(SourceChip(label="Profile FAQ", category="faq"))
+
+    elif intent == "profile_overview":
+        profile_data = get_profile_summary()
+        prefs = get_engagement_preferences()
+        data["name"] = profile_data["name"]
+        data["title"] = profile_data["title"]
+        data["location"] = profile_data["location"]
+        data["profile"] = profile_data["profile"]
+        data["capabilities"] = profile_data["capabilities"]
+        data["core_skills"] = get_core_skills()
+        data["ideal_roles"] = prefs.get("full_time_preferences", {}).get("ideal_roles", [])
+        data["focus"] = prefs.get("focus", "")
+        sources.append(SourceChip(label="CV Profile", category="cv"))
+
+    elif intent == "capabilities":
+        caps_data = get_capabilities()
+        data["capabilities"] = caps_data["capabilities"]
+        data["core_skills"] = caps_data["core_skills"]
+        data["key_systems"] = caps_data["key_systems"]
+        data["tech_stack"] = get_tech_stack()
+        sources.append(SourceChip(label="Capabilities", category="cv"))
+
+    elif intent == "engagement_preferences":
+        prefs = get_engagement_preferences()
+        data["work_type"] = prefs.get("work_type", [])
+        data["location"] = prefs.get("location", [])
+        data["rates"] = prefs.get("rates", {})
+        data["full_time_preferences"] = prefs.get("full_time_preferences", {})
+        data["focus"] = prefs.get("focus", "")
+        data["availability_summary"] = _load_cv().get("contact", {}).get("availability", "")
+        sources.append(SourceChip(label="Engagement Preferences", category="cv"))
+
+    elif intent == "contact":
+        prefs = get_engagement_preferences()
+        data["availability"] = _load_cv().get("contact", {}).get("availability", "")
+        data["focus"] = prefs.get("focus", "")
+        sources.append(SourceChip(label="Contact", category="cv"))
 
     else:
         data = {}

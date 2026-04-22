@@ -18,9 +18,7 @@ export const SUGGESTED_PROMPTS = [
 export const HIRE_PROMPT =
   "Can David be hired for a short project or MVP build?";
 export const STACK_HIGHLIGHT =
-  "Python backend + Next.js frontend — built for fast, production-ready delivery.";
-
-export const CONTACT_EMAIL = "hello@davidrobertson.pro";
+  "Python backend + Next.js frontend - built for fast, production-ready delivery.";
 
 export const SOCIAL_LINKS = {
   github: "https://github.com/davidrobertson",

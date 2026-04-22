@@ -1,13 +1,10 @@
 """Deterministic answer builder.
 
-Every answer follows a recruiter-facing shape:
-    1. Direct, context-aware opening (matched to question shape)
-    2. Supporting proof (including named project evidence where relevant)
-    3. Closing positioning line
+Answers are assembled from structured records only. No LLM and no raw JSON
+dumping. The response-style selector still controls how first sentences are
+framed so the pipeline remains:
 
-No LLM. All copy is templated from structured data loaded by the retriever.
-The opening line is selected centrally via QuestionIntent + ResponseStyle,
-not hardcoded per handler.
+classifier -> retriever -> answer_builder -> response_style
 """
 
 import re
@@ -21,872 +18,732 @@ from app.services.response_style import ResponseStyle, select_response_style
 FOLLOW_UPS: dict[Intent, list[str]] = {
     "skills": [
         "What production AI systems has David built?",
-        "What kinds of AI roles is David best suited for?",
-        "How does David combine Python and Next.js in production?",
+        "What tech stack does David use?",
+        "What roles is David open to?",
     ],
     "technical_stack": [
-        "What projects has David built with this stack?",
-        "What kinds of AI roles is David best suited for?",
-        "Can David be hired for a short project?",
+        "What has David built with that stack?",
+        "What does David do?",
+        "What kinds of engagements is David open to?",
     ],
     "projects": [
-        "What technical stack does David use?",
+        "What tech stack does David use?",
         "What is David strongest at technically?",
-        "Can David be hired for a short MVP build?",
+        "Can David help with a short MVP build?",
+    ],
+    "projects_overview": [
+        "What tech stack does David use?",
+        "What experience does David bring to those builds?",
+        "What kinds of work is David open to?",
     ],
     "experience": [
-        "What projects has David built?",
+        "What has David built?",
         "What is David strongest at technically?",
-        "What kinds of AI roles is David best suited for?",
+        "What roles is David best suited for?",
+    ],
+    "experience_summary": [
+        "What has David built recently?",
+        "What tech stack does David use?",
+        "What roles is David open to?",
     ],
     "strengths": [
         "What production AI systems has David built?",
-        "What kinds of AI roles is David best suited for?",
+        "What tech stack does David use?",
         "Can David be hired for a short project?",
     ],
     "role_fit": [
         "What is David strongest at technically?",
-        "What production AI systems has David built?",
-        "Is David available for short projects or contract work?",
+        "What has David built?",
+        "How do I contact David?",
     ],
     "preferred_roles": [
-        "What is David strongest at technically?",
-        "What production AI systems has David built?",
-        "Is David available for new roles?",
+        "What does David do?",
+        "What has David built?",
+        "How do I contact David?",
     ],
     "availability": [
-        "Can David be hired for a short project?",
-        "What kinds of AI roles is David best suited for?",
-        "What is David strongest at technically?",
+        "What roles is David open to?",
+        "Can David help with a short project?",
+        "How do I contact David?",
     ],
     "achievements": [
-        "What production AI systems has David built?",
-        "What is David strongest at technically?",
-        "What kinds of AI roles is David best suited for?",
+        "What has David built?",
+        "What tech stack does David use?",
+        "What roles is David open to?",
     ],
     "engagement": [
         "What are David's day rates?",
+        "What kinds of work is David open to?",
         "How do I contact David?",
-        "What production AI systems has David built?",
     ],
     "contact": [
-        "What production AI systems has David built?",
-        "What is David's technical stack?",
-        "Can David help us build an MVP?",
+        "What does David do?",
+        "What has David built?",
+        "What tech stack does David use?",
     ],
     "faq": [
-        "What production AI systems has David built?",
+        "What has David built?",
         "What is David strongest at technically?",
-        "Can David be hired for a short project?",
+        "How do I contact David?",
+    ],
+    "profile_overview": [
+        "What tech stack does David use?",
+        "What has David built?",
+        "What roles is David open to?",
+    ],
+    "capabilities": [
+        "What has David built with those capabilities?",
+        "What tech stack supports that work?",
+        "What engagements is David open to?",
+    ],
+    "engagement_preferences": [
+        "What does David do?",
+        "What has David built?",
+        "How do I contact David?",
     ],
     "unknown": [],
 }
 
 
-# ---------------------------------------------------------------------------
-# Refusal messages
-# ---------------------------------------------------------------------------
-
 _OUT_OF_SCOPE = (
-    "I can only answer questions about David Robertson's professional background — "
-    "his skills, projects, experience, achievements, engagement options, and role "
-    "suitability.\n\n"
-    "Try asking something like *\"What production AI systems has David built?\"*, "
-    "*\"Would David suit a solutions architect role?\"*, or "
-    "*\"Can David be hired for a short project?\"*."
+    "I can only answer questions about David Robertson's professional background, "
+    "including his work, projects, technical stack, experience, and engagement preferences."
 )
 
 _INSUFFICIENT_EVIDENCE = (
-    "I don't have enough published profile data to answer that confidently. "
-    "Rather than speculate, I'd rather stay grounded in what's on record.\n\n"
-    "You can ask about David's skills, projects, experience, achievements, "
-    "technical stack, engagement options, or role suitability — those areas "
-    "are fully covered."
+    "I do not have enough published profile data to answer that cleanly, so I would rather stay grounded in what is on record."
 )
 
 
-# ---------------------------------------------------------------------------
-# Query context extraction — lightweight, deterministic
-# ---------------------------------------------------------------------------
-
 _CONTEXT_PATTERNS: list[tuple[str, str]] = [
-    # (regex, phrase to surface in the opening clause)
-    (r"\bsolutions?\s+architect\b", "solutions architecture"),
-    (r"\bapplied\s+ai\b", "applied AI work"),
-    (r"\bai\s+engineer(?:ing)?\b", "AI engineering"),
-    (r"\bai\s+product\b", "AI product work"),
-    (r"\bfounding\s+engineer\b", "founding engineer seats"),
-    (r"\brecruit(?:er|ment|ing)\s+tool", "recruiter-facing tools"),
-    (r"\brecruit(?:er|ment|ing)\b", "recruitment-domain work"),
-    (r"\bfull[-\s]?stack\b", "full-stack delivery"),
-    (r"\bpython\b.*\bnext\.?js\b|\bnext\.?js\b.*\bpython\b", "Python and Next.js builds"),
-    (r"\bpython\b", "Python backend work"),
-    (r"\bnext\.?js\b", "Next.js product builds"),
-    (r"\bfastapi\b", "FastAPI backends"),
-    (r"\bmvp\b", "MVP builds"),
-    (r"\bshort\s+project|short[-\s]term|freelance|contract|consulting", "short-term engagements"),
-    (r"\barchitecture|architect\b", "architecture work"),
-    (r"\bllm|agentic|agent\b", "LLM and agentic systems"),
+    (r"solutions?\s+architect", "solutions architecture"),
+    (r"applied\s+ai", "applied AI"),
+    (r"ai\s+engineer", "AI engineering"),
+    (r"next\.?js", "Next.js delivery"),
+    (r"python", "Python delivery"),
+    (r"mvp", "MVP builds"),
+    (r"recruit", "recruitment products"),
 ]
 
 
 def _query_context(message: str) -> str | None:
-    """Return a short noun phrase describing the query context, if we can
-    detect one. Used to personalise the opening sentence."""
-    if not message:
-        return None
-    lowered = message.lower()
-    for pattern, phrase in _CONTEXT_PATTERNS:
+    lowered = (message or "").lower()
+    for pattern, label in _CONTEXT_PATTERNS:
         if re.search(pattern, lowered):
-            return phrase
+            return label
     return None
 
 
-# ---------------------------------------------------------------------------
-# Project evidence — deterministic, name-checked.
-# Used to force 1–2 named project references into relevant intents.
-# ---------------------------------------------------------------------------
-
-_PROJECT_EVIDENCE: dict[str, str] = {
-    "CareersAI": "scoring and matching systems",
-    "RecruitersAI": "recruiter-facing intelligence",
-    "InterviewsAI": "Python evaluation pipelines on FastAPI + Next.js",
-    "UK AI Jobs Pipeline": "AI-assisted automation and scoring",
-    "AI IDE Initiative": "AI developer tooling architecture",
-}
-
-# Per-keyword hints about which projects to surface first. Falls back to the
-# ordered list if no match is found.
-_PROJECT_HINTS: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
-    (("recruit", "hiring", "candidate", "talent", "recruiter tool"),
-     ("CareersAI", "RecruitersAI")),
-    (("interview", "assessment", "evaluation"),
-     ("InterviewsAI", "CareersAI")),
-    (("python", "fastapi", "backend"),
-     ("InterviewsAI", "UK AI Jobs Pipeline")),
-    (("next.js", "nextjs", "frontend", "typescript"),
-     ("CareersAI", "InterviewsAI")),
-    (("automation", "pipeline", "workflow", "scoring"),
-     ("UK AI Jobs Pipeline", "InterviewsAI")),
-    (("developer", "ide", "tooling", "devtools", "mcp"),
-     ("AI IDE Initiative", "InterviewsAI")),
-    (("ai product", "applied ai", "llm", "agent", "agentic"),
-     ("InterviewsAI", "CareersAI")),
-]
-
-_DEFAULT_PROJECT_ORDER: tuple[str, ...] = (
-    "InterviewsAI", "CareersAI", "RecruitersAI",
-    "UK AI Jobs Pipeline", "AI IDE Initiative",
-)
+def _join_lines(parts: list[str]) -> str:
+    return "\n".join(part for part in parts if part is not None).strip()
 
 
-def _pick_projects(message: str, available: list[dict] | None = None) -> list[str]:
-    """Return up to two project names most relevant to the query, intersected
-    with any retrieved project list so we never reference a project that isn't
-    in the data."""
-    available_names: set[str] | None = None
-    if available:
-        available_names = {p.get("name", "") for p in available if p.get("name")}
-
-    lowered = (message or "").lower()
+def _dedupe(items: list[str]) -> list[str]:
+    seen: set[str] = set()
     ordered: list[str] = []
-    for keywords, names in _PROJECT_HINTS:
-        if any(kw in lowered for kw in keywords):
-            for n in names:
-                if n not in ordered:
-                    ordered.append(n)
-    for n in _DEFAULT_PROJECT_ORDER:
-        if n not in ordered:
-            ordered.append(n)
-
-    if available_names is not None:
-        ordered = [n for n in ordered if n in available_names]
-
-    return ordered[:2]
+    for item in items:
+        cleaned = (item or "").strip()
+        if not cleaned:
+            continue
+        key = cleaned.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered.append(cleaned)
+    return ordered
 
 
-def _project_evidence_line(message: str, available: list[dict] | None = None) -> str | None:
-    names = _pick_projects(message, available)
-    if not names:
-        return None
-    if len(names) == 1:
-        n = names[0]
-        return f"The clearest example is **{n}** ({_PROJECT_EVIDENCE[n]})."
-    a, b = names[0], names[1]
-    return (
-        f"The clearest examples are **{a}** ({_PROJECT_EVIDENCE[a]}) and "
-        f"**{b}** ({_PROJECT_EVIDENCE[b]})."
-    )
+def _comma_list(items: list[str], limit: int | None = None) -> str:
+    cleaned = _dedupe(items)
+    if limit is not None:
+        cleaned = cleaned[:limit]
+    return ", ".join(cleaned)
 
 
-# ---------------------------------------------------------------------------
-# Opening helpers
-# ---------------------------------------------------------------------------
-
-def _opening(base: str, ctx: str | None, tail: str | None = None) -> str:
-    """Glue a context clause into the opener if one is available."""
-    if ctx:
-        return f"{base}, particularly for {ctx}." if not tail else f"{base}, particularly for {ctx}. {tail}"
-    return f"{base}. {tail}" if tail else f"{base}."
+def _bullet_block(title: str, items: list[str], limit: int) -> list[str]:
+    cleaned = _dedupe(items)[:limit]
+    if not cleaned:
+        return []
+    return [title, *[f"- {item}" for item in cleaned]]
 
 
-# --------------------------------------------------------------------- #
-# Centralised opening-line composition
-# --------------------------------------------------------------------- #
-
-# Per-QuestionIntent, the detail clause that fills the {detail} slot in
-# the ResponseStyle.opening_pattern. Each maps to a short, natural
-# continuation that reads well after the pattern prefix.
-_OPENING_DETAILS: dict[QuestionIntent, str] = {
-    QuestionIntent.CAPABILITY: (
-        "works across applied AI, Python backend systems, and "
-        "Next.js product builds"
-    ),
-    QuestionIntent.FIT_YES_NO: (
-        "is a strong fit here"
-    ),
-    QuestionIntent.STRENGTHS: (
-        "applied AI, Python backend engineering, and Next.js product delivery "
-        "— the areas where those intersect"
-    ),
-    QuestionIntent.EXPERIENCE: (
-        "a run of applied AI and SaaS products, from end to end"
-    ),
-    QuestionIntent.IDENTITY_SUMMARY: (
-        "a senior AI engineer and systems builder who works across applied AI, "
-        "Python backends, and Next.js product delivery"
-    ),
-    QuestionIntent.WORKING_STYLE: (
-        "with clear ownership, architectural input, and a bias toward shipping"
-    ),
-    QuestionIntent.AVAILABILITY_COMMERCIAL: (
-        "for both senior roles and short, focused engagements"
-    ),
-    QuestionIntent.GENERAL_PROFILE: (
-        "works at the intersection of applied AI, architecture, and "
-        "Python + Next.js product engineering"
-    ),
-}
+def _pipe_title(title: str) -> str:
+    return title.replace("|", ",").replace("  ", " ").strip(" ,")
 
 
-def _compose_opening(
+def _stack_groups(stack: dict[str, Any]) -> dict[str, list[str]]:
+    languages = stack.get("languages", [])
+    frameworks = stack.get("frameworks", [])
+    backend = stack.get("backend", [])
+    frontend = stack.get("frontend", [])
+    ai_tools = stack.get("ai_tools", [])
+    infrastructure = stack.get("infrastructure", [])
+    other = stack.get("other", [])
+    return {
+        "Backend": _dedupe(languages[:1] + backend + frameworks),
+        "Frontend": _dedupe(frontend + ["TypeScript"]),
+        "AI": _dedupe(ai_tools),
+        "Infrastructure": _dedupe(infrastructure + other),
+    }
+
+
+def _styled_intro(
     q_intent: QuestionIntent,
     style: ResponseStyle,
-    ctx: str | None = None,
+    detail: str,
+    message: str = "",
 ) -> str:
-    """Build the first sentence of the answer from the classified question
-    shape and the selected response style.
-
-    This is the single place that decides how an answer begins.
-    """
-    detail = _OPENING_DETAILS.get(q_intent, _OPENING_DETAILS[QuestionIntent.GENERAL_PROFILE])
-    base = style.opening_pattern.format(subject="David", detail=detail)
-
-    if ctx:
-        # Weave the topic-context phrase in naturally.
-        if base.endswith("."):
-            base = base[:-1]
-        return f"{base}, particularly for {ctx}."
+    detail_text = detail
+    if " is {detail}" in style.opening_pattern and detail_text.startswith("is "):
+        detail_text = detail_text[3:]
+    if " strongest at {detail}" in style.opening_pattern and detail_text.startswith("is strongest at "):
+        detail_text = detail_text[len("is strongest at ") :]
+    if " has built {detail}" in style.opening_pattern and detail_text.startswith("has built "):
+        detail_text = detail_text[len("has built ") :]
+    if " works best {detail}" in style.opening_pattern and detail_text.startswith("works best "):
+        detail_text = detail_text[len("works best ") :]
+    if " is available {detail}" in style.opening_pattern and detail_text.startswith("is available "):
+        detail_text = detail_text[len("is available ") :]
+    base = style.opening_pattern.format(subject="David", detail=detail_text).strip()
     if not base.endswith("."):
-        return f"{base}."
+        base = f"{base}."
+    context = _query_context(message)
+    if context and context not in base.lower():
+        base = base[:-1] + f", particularly for {context}."
     return base
 
 
-def _join_lines(parts: list[str]) -> str:
-    return "\n".join(p for p in parts if p is not None).strip()
+def _answer_profile_overview(
+    data: dict[str, Any], message: str,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
+) -> str:
+    title = _pipe_title(data.get("title", "AI architect and systems engineer"))
+    location = data.get("location", "")
+    profile = data.get("profile", "")
+    capabilities = data.get("capabilities") or []
+    core_skills = data.get("core_skills") or []
+    ideal_roles = data.get("ideal_roles") or []
+    focus = data.get("focus", "")
+
+    if not title and not profile:
+        return _INSUFFICIENT_EVIDENCE
+
+    lines = [
+        _styled_intro(q_intent, style, f"is {_pipe_title(title)}", message)
+        if title
+        else _styled_intro(q_intent, style, "works across applied AI and product delivery", message)
+    ]
+
+    if location:
+        lines.append(f"Based in {location}.")
+    if profile:
+        lines.extend(["", profile])
+    if capabilities:
+        lines.append(f"Key capabilities: {_comma_list(capabilities, 4)}.")
+    if core_skills:
+        lines.append(f"Core delivery areas: {_comma_list(core_skills, 4)}.")
+    if ideal_roles:
+        lines.append(f"Best-fit roles: {_comma_list(ideal_roles, 4)}.")
+    if focus:
+        lines.extend(["", focus])
+    return _join_lines(lines)
 
 
-# ---------------------------------------------------------------------------
-# Intent handlers
-# ---------------------------------------------------------------------------
+def _answer_capabilities(
+    data: dict[str, Any], message: str,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
+) -> str:
+    capabilities = data.get("capabilities") or []
+    core_skills = data.get("core_skills") or []
+    key_systems = data.get("key_systems") or []
+
+    if not capabilities and not core_skills:
+        return _INSUFFICIENT_EVIDENCE
+
+    lines = [
+        _styled_intro(q_intent, style, "works across AI systems, workflow automation, and product delivery", message),
+        "",
+        *_bullet_block("Core capabilities:", capabilities, 6),
+        "",
+        *_bullet_block("Execution strengths:", core_skills, 5),
+    ]
+    if key_systems:
+        lines.extend(["", *_bullet_block("Representative systems:", key_systems, 4)])
+    lines.extend([
+        "",
+        "Those capabilities are demonstrated in shipped products — InterviewsAI, the AI Jobs Pipeline, CareersAI, and RecruitersAI — not just described in a CV.",
+        "",
+        "That combination suits architecture-led AI work, deterministic systems, and rapid product builds where delivery quality matters as much as speed.",
+    ])
+    return _join_lines(lines)
+
 
 def _answer_skills(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
-    skills = data.get("technical_skills") or []
+    technical_skills = data.get("technical_skills") or []
     working_style = data.get("working_style") or []
-    if not skills:
+    if not technical_skills:
         return _INSUFFICIENT_EVIDENCE
 
-    ctx = _query_context(message)
     by_category: dict[str, list[str]] = {}
-    for s in skills:
-        cat = (s.get("category") or "other").title()
-        by_category.setdefault(cat, []).append(s.get("name", ""))
+    for skill in technical_skills:
+        category = (skill.get("category") or "Other").title()
+        by_category.setdefault(category, []).append(skill.get("name", ""))
 
-    rs = style or select_response_style(q_intent)
-    lines: list[str] = [_compose_opening(q_intent, rs, ctx), ""]
-    lines.append("Across the stack, that breaks down roughly like this:")
-    for cat, names in by_category.items():
-        cleaned = ", ".join(n for n in names if n)
-        if cleaned:
-            lines.append(f"— **{cat}:** {cleaned}")
+    lines = [
+        _styled_intro(q_intent, style, "works across applied AI, Python backends, and product-facing frontend delivery", message),
+        "",
+        "Broadly, the skill set breaks down like this:",
+    ]
+    for category, names in by_category.items():
+        grouped = _comma_list(names)
+        if grouped:
+            lines.append(f"- **{category}:** {grouped}")
 
     if working_style:
-        lines.append("")
-        lines.append("In practice he tends to:")
-        for item in working_style[:4]:
-            lines.append(f"— {item}")
+        lines.extend(["", *_bullet_block("How he tends to work:", working_style, 4)])
 
-    evidence = _project_evidence_line(message)
-    if evidence:
-        lines.append("")
-        lines.append(evidence)
-
-    lines.append("")
-    lines.append(
-        "That combination — Python + FastAPI on the backend, Next.js + "
-        "TypeScript on the frontend — is the stack he delivers with in "
-        "production, and it's what makes him effective in senior AI "
-        "engineering and architecture roles."
-    )
+    lines.extend([
+        "",
+        "The positioning is consistent: a hands-on senior builder who can move from architecture through to shipped implementation.",
+    ])
     return _join_lines(lines)
 
 
 def _answer_strengths(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
     strengths = data.get("core_strengths") or []
     working_style = data.get("working_style") or []
     if not strengths:
         return _INSUFFICIENT_EVIDENCE
 
-    ctx = _query_context(message)
-    rs = style or select_response_style(q_intent)
-    lines = [_compose_opening(q_intent, rs, ctx), "", "The strengths that come up again and again:"]
-    for s in strengths[:6]:
-        lines.append(f"— {s}")
-
+    lines = [
+        _styled_intro(q_intent, style, "applied AI, backend engineering, and product delivery", message),
+        "",
+        *_bullet_block("The strongest themes are:", strengths, 6),
+    ]
     if working_style:
-        lines.append("")
-        lines.append("How that tends to show up day to day:")
-        for item in working_style[:3]:
-            lines.append(f"— {item}")
-
-    evidence = _project_evidence_line(message)
-    if evidence:
-        lines.append("")
-        lines.append(evidence)
-
-    lines.append("")
-    lines.append(
-        "Net-net: these strengths map directly onto senior AI engineer, "
-        "solutions architect, and applied AI roles — and onto short MVP "
-        "builds where Python + Next.js delivery speed matters."
-    )
+        lines.extend(["", *_bullet_block("That usually shows up as:", working_style, 3)])
+    lines.extend([
+        "",
+        "That is backed by concrete systems: InterviewsAI (AI-driven evaluation with scoring and adaptive questioning), the AI Jobs Pipeline (automated sourcing and deterministic fit scoring), and CareersAI / RecruitersAI (end-to-end recruitment AI platforms).",
+        "",
+        "That is why he fits senior IC, architecture, and founding-style product roles particularly well.",
+    ])
     return _join_lines(lines)
 
 
 def _answer_projects(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
     projects = data.get("projects") or []
     if not projects:
         return _INSUFFICIENT_EVIDENCE
 
-    ctx = _query_context(message)
-    primary = projects[0]
-    supporting = projects[1:3]
+    lines = [
+        _styled_intro(q_intent, style, "has shipped product-led systems rather than isolated prototypes", message),
+    ]
+    for project in projects[:3]:
+        name = project.get("name", "")
+        project_type = project.get("type", "")
+        summary = project.get("summary", "")
+        tech = project.get("tech") or []
+        if not name:
+            continue
+        lines.extend(["", f"**{name}**" + (f" - {project_type}" if project_type else "")])
+        if summary:
+            lines.append(summary)
+        if tech:
+            lines.append(f"Stack: {_comma_list(tech)}.")
+    lines.extend([
+        "",
+        "The pattern across those builds is clear: strong product framing, credible technical delivery, and systems designed to be used in production.",
+    ])
+    return _join_lines(lines)
 
-    # Name-driven opener so the first sentence has concrete evidence.
-    picked = _pick_projects(message, projects)
-    lead_names = ", ".join(f"**{n}**" for n in picked) if picked else f"**{primary.get('name', '')}**"
-    rs = style or select_response_style(q_intent)
-    opener = _compose_opening(q_intent, rs, ctx)
-    # Append concrete project names as a tail clause.
-    tail = f"The clearest example{'s' if len(picked) > 1 else ''} here: {lead_names}."
-    if opener.endswith("."):
-        opener = f"{opener} {tail}"
-    else:
-        opener = f"{opener}. {tail}"
 
-    lines = [opener, ""]
+def _answer_projects_overview(
+    data: dict[str, Any], message: str,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
+) -> str:
+    projects = data.get("projects") or []
+    key_systems = data.get("key_systems") or []
+    products = data.get("products") or []
+    if not projects and not key_systems:
+        return _INSUFFICIENT_EVIDENCE
 
-    lines.append(f"**{primary.get('name', '')}** — {primary.get('type', '')}")
-    lines.append(primary.get("summary", ""))
-    if primary.get("highlights"):
-        lines.append(f"— {primary['highlights'][0]}")
-    tech = ", ".join(primary.get("tech", []))
-    if tech:
-        lines.append(f"*Stack: {tech}*")
+    lines = [
+        _styled_intro(q_intent, style, "has built production AI systems around automation, scoring, and workflow execution", message),
+    ]
 
-    if supporting:
-        lines.append("")
-        lines.append("Alongside that, a couple more worth knowing about:")
-        for p in supporting:
-            name = p.get("name", "")
-            summary = p.get("summary", "")
-            lines.append(f"— **{name}** — {summary}")
+    for project in projects[:4]:
+        name = project.get("name", "")
+        description = project.get("description", "")
+        features = project.get("features") or []
+        if not name:
+            continue
+        lines.extend(["", f"**{name}**"])
+        if description:
+            lines.append(description)
+        if features:
+            lines.append(f"Key detail: {_comma_list(features, 3)}.")
 
-    lines.append("")
-    lines.append(
-        "For hiring: the pattern is consistent — Python + Next.js delivery, "
-        "architecture-led thinking, and systems that actually ship. That is "
-        "the same delivery posture he brings to short builds and MVP work."
-    )
+    if key_systems:
+        lines.extend(["", *_bullet_block("Other named systems include:", key_systems, 4)])
+    if products:
+        lines.append(f"Current product portfolio: {_comma_list(products, 4)}.")
+
+    lines.extend([
+        "",
+        "This is not vague CV language. The work is concrete: matching, scoring, orchestration, ingestion, and AI-assisted product workflows.",
+    ])
     return _join_lines(lines)
 
 
 def _answer_experience(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
-    roles = data.get("experience") or []
-    caps = data.get("capabilities") or []
+    experience = data.get("experience") or []
+    capabilities = data.get("capabilities") or []
     industries = data.get("industries") or []
-
-    if not roles and not caps:
+    if not experience and not capabilities:
         return _INSUFFICIENT_EVIDENCE
 
-    ctx = _query_context(message)
-    rs = style or select_response_style(q_intent)
-    lines = [_compose_opening(q_intent, rs, ctx), ""]
-
-    if roles:
-        lines.append("A quick sketch of where he sits today:")
-        for r in roles[:3]:
-            title = r.get("title", "")
-            summary = r.get("summary", "")
-            lines.append(f"— **{title}** — {summary}")
-
-    if caps:
-        lines.append("")
-        lines.append("Day to day, the work looks like:")
-        for c in caps[:5]:
-            lines.append(f"— {c}")
-
+    lines = [
+        _styled_intro(q_intent, style, "brings a mix of applied AI, SaaS, and delivery experience", message),
+    ]
+    if experience:
+        lines.extend(["", *_bullet_block("A quick overview:", [
+            f"{item.get('title', '')} - {item.get('summary', '')}".strip(" -")
+            for item in experience[:3]
+        ], 3)])
+    if capabilities:
+        lines.extend(["", *_bullet_block("Typical responsibilities:", capabilities, 5)])
     if industries:
-        lines.append("")
-        lines.append(f"He has done this across {', '.join(industries)}.")
+        lines.append(f"That work spans { _comma_list(industries) }.")
+    lines.extend([
+        "",
+        "The positioning is senior hands-on delivery rather than pure management.",
+    ])
+    return _join_lines(lines)
 
-    lines.append("")
-    lines.append(
-        "In practice: this background suits senior IC, architect, and "
-        "founding-engineer roles — and short, focused engagements where "
-        "technical ownership and shipping speed matter."
-    )
+
+def _answer_experience_summary(
+    data: dict[str, Any], message: str,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
+) -> str:
+    experience = data.get("experience") or []
+    capabilities = data.get("capabilities") or []
+    if not experience:
+        return _INSUFFICIENT_EVIDENCE
+
+    lines = [
+        _styled_intro(q_intent, style, "brings recent AI product work on top of earlier founder, web, and operations experience", message),
+    ]
+    for role in experience[:4]:
+        role_name = role.get("role", "")
+        company = role.get("company", "")
+        dates = role.get("dates", "")
+        summary = role.get("summary", "")
+        label = " - ".join(part for part in [role_name, company, dates] if part)
+        if not label:
+            continue
+        lines.extend(["", f"**{label}**"])
+        if summary:
+            lines.append(summary)
+
+    if capabilities:
+        lines.extend(["", *_bullet_block("Consistent themes across that work:", capabilities, 5)])
+
+    lines.extend([
+        "",
+        "That blend gives him both builder speed and commercial judgement, which is useful in senior AI engineering and architecture roles.",
+    ])
     return _join_lines(lines)
 
 
 def _answer_technical_stack(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
-    skills = data.get("technical_skills") or []
-    if not skills:
+    stack = data.get("tech_stack") or {}
+    core_skills = data.get("core_skills") or []
+    if not stack:
         return _INSUFFICIENT_EVIDENCE
 
-    ctx = _query_context(message)
-    by_category: dict[str, list[str]] = {}
-    for s in skills:
-        cat = (s.get("category") or "other").title()
-        by_category.setdefault(cat, []).append(s.get("name", ""))
+    lines = [
+        _styled_intro(q_intent, style, "works across Python services, Next.js products, and supporting AI tooling", message),
+        "",
+        "Grouped simply, the stack looks like this:",
+    ]
+    for label, items in _stack_groups(stack).items():
+        grouped = _comma_list(items)
+        if grouped:
+            lines.append(f"- **{label}:** {grouped}")
 
-    rs = style or select_response_style(q_intent)
-    lines = [_compose_opening(q_intent, rs, ctx), "", "Breaking that down by area:"]
-    for cat, names in by_category.items():
-        cleaned = ", ".join(n for n in names if n)
-        if cleaned:
-            lines.append(f"— **{cat}:** {cleaned}")
+    if core_skills:
+        lines.append(f"Core technical emphasis: {_comma_list(core_skills, 4)}.")
 
-    lines.append("")
-    lines.append(
-        "How it fits together in practice: typed FastAPI services handle the "
-        "deterministic backend work, Next.js App Router drives streaming UX "
-        "and product surfaces, and Convex, Clerk, and Stripe slot in for "
-        "realtime data, auth, and billing when a product needs them."
-    )
-
-    evidence = _project_evidence_line(message)
-    if evidence:
-        lines.append("")
-        lines.append(evidence)
-
-    lines.append("")
-    lines.append(
-        "It is a production-ready stack chosen for speed of delivery and "
-        "maintainability — the same stack he uses for short MVP builds and "
-        "applied AI work."
-    )
+    lines.extend([
+        "",
+        "In practice that means Python APIs and automation on the backend, Next.js and TypeScript on the frontend, major LLM providers for AI features, and lightweight infrastructure that keeps delivery fast without losing production discipline.",
+    ])
     return _join_lines(lines)
 
 
 def _answer_role_fit(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
     positioning = data.get("positioning") or []
-    preferred = data.get("preferred_roles") or []
-    titles = data.get("relevant_job_titles") or []
-    caps = data.get("capabilities") or []
-
-    if not positioning and not preferred and not titles:
+    preferred_roles = data.get("preferred_roles") or []
+    relevant_titles = data.get("relevant_job_titles") or []
+    capabilities = data.get("capabilities") or []
+    key_systems = data.get("key_systems") or []
+    projects = data.get("projects") or []
+    engagement_focus = data.get("engagement_focus", "")
+    if not positioning and not preferred_roles and not relevant_titles:
         return _INSUFFICIENT_EVIDENCE
 
-    ctx = _query_context(message) or "applied AI and full-stack delivery"
-    rs = style or select_response_style(q_intent)
-    opener = _compose_opening(q_intent, rs, ctx)
+    lines = [
+        _styled_intro(q_intent, style, "is a strong fit where AI delivery, systems thinking, and product ownership overlap", message),
+    ]
+    if relevant_titles:
+        lines.append(f"Closest title matches: {_comma_list(relevant_titles, 6)}.")
+    if preferred_roles:
+        lines.append(f"Roles he actively aligns with: {_comma_list(preferred_roles, 5)}.")
+    if capabilities:
+        lines.extend(["", *_bullet_block("Why the fit is credible:", capabilities, 4)])
 
-    lines = [opener, ""]
+    # Evidence-backed project references
+    if projects:
+        project_names = [p.get("name", "") for p in projects[:3] if p.get("name")]
+        if project_names:
+            lines.extend(["", f"That positioning is backed by shipped systems: {_comma_list(project_names)}."])
+    if key_systems:
+        lines.extend(["", *_bullet_block("Representative systems he has built:", key_systems, 3)])
 
-    if titles:
-        lines.append("Titles that map to him directly:")
-        for t in titles[:6]:
-            lines.append(f"— {t}")
-
-    if preferred:
-        lines.append("")
-        lines.append("The role shapes he actively goes after:")
-        for r in preferred[:5]:
-            lines.append(f"— {r}")
-
-    if caps:
-        lines.append("")
-        lines.append("Why he fits:")
-        for c in caps[:4]:
-            lines.append(f"— {c}")
-
-    evidence = _project_evidence_line(message)
-    if evidence:
-        lines.append("")
-        lines.append(evidence)
-
-    lines.append("")
-    lines.append(
-        "For hiring: he works best with clear ownership, architectural "
-        "input, and a bias toward shipping — senior IC, founding engineer, "
-        "or architect seats rather than pure management tracks."
-    )
+    if positioning:
+        lines.append(f"Overall positioning: {_comma_list(positioning, 4)}.")
+    if engagement_focus:
+        lines.extend(["", engagement_focus])
     return _join_lines(lines)
 
 
 def _answer_preferred_roles(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
-    preferred = data.get("preferred_roles") or []
-    titles = data.get("relevant_job_titles") or []
-    availability = data.get("availability_summary") or ""
-
-    if not preferred and not titles:
+    preferred_roles = data.get("preferred_roles") or []
+    relevant_titles = data.get("relevant_job_titles") or []
+    availability_summary = data.get("availability_summary", "")
+    if not preferred_roles and not relevant_titles:
         return _INSUFFICIENT_EVIDENCE
 
-    ctx = _query_context(message)
-    rs = style or select_response_style(q_intent)
-    lines = [_compose_opening(q_intent, rs, ctx), ""]
-    if preferred:
-        lines.append("The role shapes he's actively after:")
-        for r in preferred:
-            lines.append(f"— {r}")
-    if titles:
-        lines.append("")
-        lines.append(f"Titles that fit cleanly: {', '.join(titles[:6])}.")
-    if availability:
-        lines.append("")
-        lines.append(availability)
-    lines.append("")
-    lines.append(
-        "Worth noting: he is also open to short projects and MVP builds "
-        "alongside full-time conversations."
-    )
+    lines = [
+        _styled_intro(q_intent, style, "is targeting senior AI and product-facing engineering roles", message),
+    ]
+    if preferred_roles:
+        lines.append(f"Preferred role shapes: {_comma_list(preferred_roles)}.")
+    if relevant_titles:
+        lines.append(f"Concrete title matches: {_comma_list(relevant_titles, 6)}.")
+    if availability_summary:
+        lines.extend(["", availability_summary])
     return _join_lines(lines)
 
 
 def _answer_availability(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
-    summary = data.get("availability_summary") or ""
-    cta = data.get("contact_cta") or ""
+    summary = data.get("availability_summary", "")
+    cta = data.get("contact_cta", "")
     if not summary and not cta:
         return _INSUFFICIENT_EVIDENCE
 
-    rs = style or select_response_style(q_intent)
-    opener = _compose_opening(q_intent, rs)
-    lines = [opener + "\n"]
+    lines = [
+        _styled_intro(q_intent, style, "is available for senior roles and focused delivery work", message),
+    ]
     if summary:
-        lines.append(summary)
-    lines.append("")
-    lines.append(
-        "On the short-project side, that usually means 1–5 day builds, MVP "
-        "delivery on Python + Next.js, or applied AI system design."
-    )
+        lines.extend(["", summary])
     if cta:
-        lines.append("")
-        lines.append(cta)
+        lines.extend(["", cta])
     return _join_lines(lines)
 
 
 def _answer_achievements(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
     achievements = data.get("achievements") or []
     if not achievements:
         return _INSUFFICIENT_EVIDENCE
 
-    ctx = _query_context(message)
-    rs = style or select_response_style(q_intent)
-    lines = [_compose_opening(q_intent, rs, ctx), ""]
-    for a in achievements:
-        title = a.get("title", "")
-        desc = a.get("description", "")
-        if not title:
+    lines = [
+        _styled_intro(q_intent, style, "has a record of recognised startup and product work", message),
+    ]
+    for achievement in achievements[:5]:
+        title = achievement.get("title", "")
+        organisation = achievement.get("organisation", "")
+        description = achievement.get("description", "")
+        year = achievement.get("date") or achievement.get("year")
+        label = " - ".join(str(part) for part in [title, organisation, year] if part)
+        if not label:
             continue
-        lines.append(f"**{title}**")
-        if desc:
-            lines.append(desc)
-        lines.append("")
-
-    lines.append(
-        "The signal: someone who turns concepts into credible working systems "
-        "quickly — the same profile that suits both senior roles and short "
-        "high-leverage projects."
-    )
+        lines.extend(["", f"**{label}**"])
+        if description:
+            lines.append(description)
     return _join_lines(lines)
 
 
 def _answer_engagement(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
-    options = data.get("engagement_options") or []
-    services = data.get("custom_services") or []
-    pricing_notes = data.get("pricing_notes") or ""
-    stack = data.get("stack_highlight") or ""
-    availability = data.get("availability_summary") or ""
-    cta = data.get("contact_cta") or ""
-
-    if not options and not services:
+    custom_services = data.get("custom_services") or []
+    engagement_options = data.get("engagement_options") or []
+    pricing_notes = data.get("pricing_notes", "")
+    stack_highlight = data.get("stack_highlight", "")
+    availability_summary = data.get("availability_summary", "")
+    source = custom_services or engagement_options
+    if not source:
         return _INSUFFICIENT_EVIDENCE
 
-    rs = style or select_response_style(q_intent)
-    opener = _compose_opening(q_intent, rs)
-    lines = [opener + "\n"]
-
-    if stack:
-        lines.append(f"He delivers on {stack}.")
-        lines.append("")
-
-    source = services if services else options
-    lines.append("The engagements that fit him best:")
-    for opt in source:
-        name = opt.get("name") or opt.get("type", "")
-        desc = opt.get("description", "")
-        if name:
-            lines.append(f"— **{name}** — {desc}")
-
-    evidence = _project_evidence_line(message)
-    if evidence:
-        lines.append("")
-        lines.append(evidence)
-
-    if pricing_notes:
-        lines.append("")
-        lines.append(pricing_notes)
-
-    if availability:
-        lines.append("")
-        lines.append(availability)
-    if cta:
-        lines.append("")
-        lines.append(cta)
-    return _join_lines(lines)
-
-
-# Subtype detection for the `contact` intent. Ordered by priority:
-# rates > contact_details > project_enquiry.
-_RATES_PATTERNS = (
-    "day rate", "day-rate", "day rates", "rates", "rate?",
-    "pricing", "price", "quote", "cost", "budget",
-)
-_CONTACT_DETAILS_PATTERNS = (
-    "contact david", "contact details", "how do i contact",
-    "how can i contact", "how to contact", "how do i reach",
-    "how can i reach", "reach david", "get in touch",
-    "in touch with david", "email david", "david's email",
-    "davids email", "email address", "phone number", "mobile number",
-)
-_PROJECT_ENQUIRY_PATTERNS = (
-    "help us build", "build this for us", "can david help us",
-    "hire david", "work with david", "working with david",
-    "start a project", "discuss a project", "discuss the project",
-    "can we work together", "build an mvp", "build us", "build for us",
-)
-
-
-def _contact_subtype(message: str) -> str:
-    text = (message or "").lower()
-    if any(p in text for p in _RATES_PATTERNS):
-        return "rates"
-    if any(p in text for p in _CONTACT_DETAILS_PATTERNS):
-        return "contact_details"
-    if any(p in text for p in _PROJECT_ENQUIRY_PATTERNS):
-        return "project_enquiry"
-    return "project_enquiry"
-
-
-def _pricing_block(services: list[dict]) -> list[str]:
     lines = [
-        f"— **{svc.get('name', '')}:** {svc.get('pricing', '')}"
-        for svc in services
-        if svc.get("pricing")
+        _styled_intro(q_intent, style, "takes on focused builds, AI system design, and senior advisory work", message),
     ]
-    if not lines:
-        return []
-    return ["As an indicative view of pricing:", *lines]
-
-
-def _engagements_block(services: list[dict]) -> list[str]:
-    lines = []
-    for svc in services:
-        name = svc.get("name", "")
-        desc = svc.get("description", "")
-        if name:
-            lines.append(f"— **{name}** — {desc}")
-    if not lines:
-        return []
-    return ["The engagements that fit him best:", *lines]
+    if stack_highlight:
+        lines.append(f"Delivery bias: {stack_highlight}.")
+    lines.extend(["", "The main engagement shapes are:"])
+    for item in source[:4]:
+        name = item.get("name") or item.get("type", "")
+        description = item.get("description", "")
+        pricing = item.get("pricing", "")
+        if not name:
+            continue
+        line = f"- **{name}** - {description}"
+        if pricing:
+            line += f" ({pricing})"
+        lines.append(line)
+    if pricing_notes:
+        lines.extend(["", pricing_notes])
+    if availability_summary:
+        lines.extend(["", availability_summary])
+    return _join_lines(lines)
 
 
 def _answer_contact(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
-    services = data.get("custom_services") or []
-    pricing_notes = data.get("pricing_notes") or ""
-    cta = data.get("contact_cta") or ""
-    available_projects = data.get("projects") or []
+    availability = data.get("availability", "")
+    focus = data.get("focus", "")
 
-    if not services and not cta:
-        return _INSUFFICIENT_EVIDENCE
-
-    subtype = _contact_subtype(message)
-    evidence = _project_evidence_line(message, available_projects)
-    sections: list[list[str]] = []
-
-    if subtype == "rates":
-        sections.append([
-            "David's rates depend on the shape of the engagement, but here "
-            "is a useful indicative view."
-        ])
-        if services:
-            sections.append(_pricing_block(services))
-            sections.append(_engagements_block(services))
-        if evidence:
-            sections.append([evidence])
-        if pricing_notes:
-            sections.append([pricing_notes])
-        if cta:
-            sections.append([cta])
-
-    elif subtype == "contact_details":
-        sections.append([
-            "The cleanest way to reach David is through the project contact "
-            "form on the site. A short outline of the scope, timeline, and "
-            "goals is the most useful starting point — he reads every "
-            "enquiry personally."
-        ])
-        if services:
-            short = [
-                f"— **{svc.get('name', '')}** — {svc.get('description', '')}"
-                for svc in services[:3]
-                if svc.get("name")
-            ]
-            if short:
-                sections.append(["For a rough sense of the engagement shapes he takes on:", *short])
-        sections.append([
-            "Indicative rates and delivery specifics are easiest to "
-            "discuss once the scope is clear."
-        ])
-        if evidence:
-            sections.append([evidence])
-        if cta:
-            sections.append([cta])
-
-    else:  # project_enquiry
-        sections.append([
-            "Yes — this is the kind of work David is a strong fit for, "
-            "particularly MVP builds and applied AI project delivery where "
-            "speed, technical clarity, and architecture-led execution "
-            "matter."
-        ])
-        if services:
-            sections.append(_engagements_block(services))
-        if evidence:
-            sections.append([evidence])
-        if services:
-            sections.append(_pricing_block(services))
-        if pricing_notes:
-            sections.append([pricing_notes])
-        if cta:
-            sections.append([cta])
-
-    # Join sections with blank-line separators.
-    out: list[str] = []
-    for i, section in enumerate(sections):
-        if not section:
-            continue
-        if out:
-            out.append("")
-        out.extend(section)
-    return _join_lines(out)
+    lines = [
+        "The best way to get in touch is through David's contact page.",
+        "Share a short note on the role or project and he can follow up directly.",
+    ]
+    if availability:
+        lines.append(availability)
+    elif focus:
+        lines.append(focus)
+    return _join_lines(lines)
 
 
 def _answer_faq(
     data: dict[str, Any], message: str,
-    q_intent: QuestionIntent = QuestionIntent.GENERAL_PROFILE,
-    style: ResponseStyle | None = None,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
 ) -> str:
     faqs = data.get("faqs") or []
     if not faqs:
         return _INSUFFICIENT_EVIDENCE
 
     lines: list[str] = []
-    for f in faqs[:3]:
-        q = f.get("question", "")
-        a = f.get("answer", "")
-        if not q or not a:
+    for faq in faqs[:3]:
+        question = faq.get("question", "")
+        answer = faq.get("answer", "")
+        if not question or not answer:
             continue
-        lines.append(f"**{q}**")
-        lines.append(a)
-        lines.append("")
-
-    evidence = _project_evidence_line(message)
-    if evidence:
-        lines.append(evidence)
-        lines.append("")
-
-    lines.append(
-        "Python backend + Next.js frontend delivery is his default posture, "
-        "whether for senior roles or short builds."
-    )
-    return _join_lines(lines) or _INSUFFICIENT_EVIDENCE
+        lines.extend([f"**{question}**", answer, ""])
+    return _join_lines(lines)
 
 
-# ---------------------------------------------------------------------------
-# Dispatcher
-# ---------------------------------------------------------------------------
+def _answer_engagement_preferences(
+    data: dict[str, Any], message: str,
+    q_intent: QuestionIntent,
+    style: ResponseStyle,
+) -> str:
+    work_type = data.get("work_type") or []
+    location = data.get("location") or []
+    rates = data.get("rates") or {}
+    full_time_preferences = data.get("full_time_preferences") or {}
+    focus = data.get("focus", "")
+    availability_summary = data.get("availability_summary", "")
+
+    if not work_type and not rates and not full_time_preferences:
+        return _INSUFFICIENT_EVIDENCE
+
+    lines = [
+        _styled_intro(q_intent, style, "is open to both permanent roles and focused delivery engagements", message),
+    ]
+    if work_type:
+        lines.append(f"Work types: {_comma_list(work_type)}.")
+    if location:
+        lines.append(f"Location preference: {_comma_list(location)}.")
+    if rates:
+        rate_bits = []
+        if rates.get("day_rate"):
+            rate_bits.append(f"day rate {rates['day_rate']}")
+        if rates.get("mvp_projects"):
+            rate_bits.append(f"MVP projects {rates['mvp_projects']}")
+        if rates.get("full_time_salary"):
+            rate_bits.append(f"full-time salary from {rates['full_time_salary']}")
+        if rate_bits:
+            lines.append(f"Commercial guide: {', '.join(rate_bits)}.")
+    if full_time_preferences.get("ideal_roles"):
+        lines.append(
+            f"Ideal full-time roles: {_comma_list(full_time_preferences.get('ideal_roles', []), 4)}."
+        )
+    if full_time_preferences.get("flexibility"):
+        lines.append(full_time_preferences["flexibility"])
+    if focus:
+        lines.extend(["", focus])
+    if availability_summary:
+        lines.append(availability_summary)
+    return _join_lines(lines)
+
 
 _HANDLERS = {
+    "profile_overview": _answer_profile_overview,
+    "capabilities": _answer_capabilities,
     "skills": _answer_skills,
     "strengths": _answer_strengths,
     "projects": _answer_projects,
+    "projects_overview": _answer_projects_overview,
     "experience": _answer_experience,
+    "experience_summary": _answer_experience_summary,
     "technical_stack": _answer_technical_stack,
     "role_fit": _answer_role_fit,
     "preferred_roles": _answer_preferred_roles,
@@ -895,6 +752,7 @@ _HANDLERS = {
     "engagement": _answer_engagement,
     "contact": _answer_contact,
     "faq": _answer_faq,
+    "engagement_preferences": _answer_engagement_preferences,
 }
 
 
@@ -904,28 +762,17 @@ def build_answer(
     message: str = "",
     question_intent: QuestionIntent | None = None,
 ) -> str:
-    """Return a recruiter-grade answer for the given intent and retrieved data.
-
-    `message` is the original user query — used for lightweight context-aware
-    openings and project-evidence selection. Safe to omit in tests; answers
-    degrade gracefully to the generic opener.
-
-    `question_intent` drives the opening-line style. If not provided the
-    handlers fall back to their default openers.
-    """
     if intent == "unknown":
         return _OUT_OF_SCOPE
 
     handler = _HANDLERS.get(intent)
     if handler is None:
         return _OUT_OF_SCOPE
-
     if not data:
         return _INSUFFICIENT_EVIDENCE
 
     q_intent = question_intent or QuestionIntent.GENERAL_PROFILE
     style = select_response_style(q_intent)
-
     return handler(data, message or "", q_intent, style)
 
 

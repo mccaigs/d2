@@ -5,6 +5,12 @@ export interface SourceChip {
   category: string;
 }
 
+export interface ChatCta {
+  type: "link";
+  label: string;
+  href: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: MessageRole;
@@ -12,6 +18,7 @@ export interface ChatMessage {
   sources?: SourceChip[];
   followUps?: string[];
   isStreaming?: boolean;
+  cta?: ChatCta | null;
   showContactForm?: boolean;
   contactReason?: string | null;
 }
@@ -26,6 +33,7 @@ export interface StreamMetadata {
   sources: SourceChip[];
   follow_ups: string[];
   intent: string;
+  cta?: ChatCta | null;
   show_contact_form?: boolean;
   contact_reason?: string | null;
 }

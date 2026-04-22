@@ -1,17 +1,19 @@
-import pytest
+import json
+
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app)
 
 
-def test_health_endpoint():
+def test_health_endpoint() -> None:
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
 
 
-def test_profile_endpoint():
+def test_profile_endpoint() -> None:
     response = client.get("/api/profile")
     assert response.status_code == 200
     data = response.json()
@@ -19,7 +21,7 @@ def test_profile_endpoint():
     assert "headline" in data
 
 
-def test_suggestions_endpoint():
+def test_suggestions_endpoint() -> None:
     response = client.get("/api/suggestions")
     assert response.status_code == 200
     data = response.json()
@@ -27,10 +29,10 @@ def test_suggestions_endpoint():
     assert len(data["prompts"]) > 0
 
 
-def test_chat_stream_endpoint():
+def test_chat_stream_endpoint() -> None:
     response = client.post(
         "/api/chat/stream",
-        json={"message": "What is David strongest at?"},
+        json={"message": "What does David do?"},
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/event-stream; charset=utf-8"
@@ -42,41 +44,8 @@ def _collect(message: str) -> str:
     return response.text
 
 
-def test_chat_stream_contact_query_sets_form_flag():
-    body = _collect("How do I contact David?")
-    assert '"intent": "contact"' in body
-    assert '"show_contact_form": true' in body
-    assert '"contact_reason": "high_intent"' in body
-
-
-def test_chat_stream_rates_query_sets_form_flag():
-    body = _collect("What are David's day rates?")
-    assert '"intent": "contact"' in body
-    assert '"show_contact_form": true' in body
-
-
-def test_chat_stream_projects_query_does_not_set_form_flag():
-    body = _collect("Has David built recruiter tools?")
-    assert '"intent": "projects"' in body
-    assert '"show_contact_form": false' in body
-
-
-def test_chat_stream_role_fit_does_not_set_form_flag():
-    body = _collect("Would David suit a solutions architect role?")
-    assert '"intent": "role_fit"' in body
-    assert '"show_contact_form": false' in body
-
-
-def test_chat_stream_engagement_with_high_intent_sets_flag():
-    body = _collect("Can David be hired for a short project?")
-    # engagement intent with "hire" token → conversion CTA
-    assert '"show_contact_form": true' in body
-
-
-def _answer_text(body: str) -> str:
-    # Stitch the streamed chunks back into the answer body for shape checks.
-    import json as _json
-    out: list[str] = []
+def _events(body: str) -> list[dict]:
+    events: list[dict] = []
     for raw in body.split("\n\n"):
         line = raw.strip()
         if not line.startswith("data:"):
@@ -84,34 +53,66 @@ def _answer_text(body: str) -> str:
         payload = line[5:].strip()
         if not payload or payload == "[DONE]":
             continue
-        try:
-            event = _json.loads(payload)
-        except ValueError:
-            continue
-        if event.get("type") == "chunk":
-            out.append(event.get("content", ""))
-    return "".join(out)
+        events.append(json.loads(payload))
+    return events
 
 
-def test_contact_rates_subtype_leads_with_pricing():
-    body = _collect("What are David's day rates?")
+def _metadata(body: str) -> dict:
+    for event in _events(body):
+        if event.get("type") == "metadata":
+            return event
+    raise AssertionError("metadata event not found")
+
+
+def _answer_text(body: str) -> str:
+    parts = [
+        event.get("content", "")
+        for event in _events(body)
+        if event.get("type") == "chunk"
+    ]
+    return "".join(parts)
+
+
+def test_profile_query_uses_cv_profile_overview() -> None:
+    body = _collect("What does David do?")
+    metadata = _metadata(body)
     answer = _answer_text(body)
-    assert "indicative" in answer.lower()
-    # Pricing block should precede the engagements block
-    assert answer.find("indicative view of pricing") < answer.find("engagements that fit him best")
+    assert metadata["intent"] == "profile_overview"
+    assert "AI architect" in answer
 
 
-def test_contact_details_subtype_leads_with_contact_route():
+def test_stack_query_returns_grouped_stack() -> None:
+    body = _collect("What tech stack does he use?")
+    metadata = _metadata(body)
+    answer = _answer_text(body)
+    assert metadata["intent"] == "technical_stack"
+    assert "Backend" in answer
+    assert "Frontend" in answer
+
+
+def test_contact_query_returns_cta_without_phone() -> None:
     body = _collect("How do I contact David?")
+    metadata = _metadata(body)
     answer = _answer_text(body)
-    assert "reach david" in answer.lower()
-    # Should not lead with a pricing block
-    assert "indicative view of pricing" not in answer
+    assert metadata["intent"] == "contact"
+    assert metadata["cta"] == {
+        "type": "link",
+        "label": "Open contact form",
+        "href": "/contact?intent=general",
+    }
+    assert "contact page" in answer.lower()
+    assert "07565" not in answer
+    assert "@" not in answer
 
 
-def test_contact_project_enquiry_subtype_leads_with_fit():
-    body = _collect("Can David help us build an MVP?")
+def test_day_rate_query_routes_to_engagement_preferences_with_cta() -> None:
+    body = _collect("What are David's day rates?")
+    metadata = _metadata(body)
     answer = _answer_text(body)
-    assert "strong fit" in answer.lower()
-    # Fit / engagements must come before pricing in this subtype
-    assert answer.find("engagements that fit him best") < answer.find("indicative view of pricing")
+    assert metadata["intent"] == "engagement_preferences"
+    assert metadata["cta"] == {
+        "type": "link",
+        "label": "Open contact form",
+        "href": "/contact?intent=hire",
+    }
+    assert "Commercial guide" in answer
