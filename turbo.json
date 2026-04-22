@@ -4,7 +4,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["API_BASE_URL", "GOOGLE_APPS_SCRIPT_URL", "ENABLE_EXPERIMENTAL_COREPACK"]
     },
     "dev": {
       "cache": false,
