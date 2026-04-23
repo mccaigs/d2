@@ -43,6 +43,7 @@ export type StreamEvent = StreamChunk | StreamMetadata;
 export interface FitGap {
   area: string;
   note: string;
+  tier?: "hard" | "soft" | "risk";
 }
 
 export interface ProjectMatch {
@@ -51,6 +52,28 @@ export interface ProjectMatch {
 }
 
 export interface ScoreBreakdown {
+  technical: number;
+  applied_ai: number;
+  product_architecture: number;
+  domain: number;
+  seniority: number;
+}
+
+export type EvidenceLabel =
+  | "direct"
+  | "strong_adjacent"
+  | "partial_inference"
+  | "not_central";
+
+export interface DimensionEvidence {
+  technical: EvidenceLabel;
+  applied_ai: EvidenceLabel;
+  product_architecture: EvidenceLabel;
+  domain: EvidenceLabel;
+  seniority: EvidenceLabel;
+}
+
+export interface DimensionWeights {
   technical: number;
   applied_ai: number;
   product_architecture: number;
@@ -69,4 +92,7 @@ export interface FitResponse {
   gaps: FitGap[];
   relevant_projects: ProjectMatch[];
   talking_points: string[];
+  role_type?: string;
+  dimension_weights?: DimensionWeights;
+  dimension_evidence?: DimensionEvidence;
 }
