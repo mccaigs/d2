@@ -15,6 +15,8 @@ class Settings(BaseSettings):
             "http://localhost:3000",
             "http://localhost:3001",
             "https://davidrobertson.pro",
+            "https://www.davidrobertson.pro",
+            "https://d2-psi.vercel.app",
         ],
         alias="CORS_ORIGINS",
     )
