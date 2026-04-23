@@ -3,9 +3,11 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Lightweight canvas-based confetti burst.
+ * Lightweight canvas-based confetti burst — fixed viewport overlay.
+ * - Renders above everything via position:fixed so it is always visible
  * - Gold/amber/stone palette to match the editorial design
  * - Respects `prefers-reduced-motion` automatically
+ * - pointer-events:none so it never blocks interaction
  * - Self-cleans after animation completes
  * - No third-party dependencies
  */
@@ -19,8 +21,8 @@ const COLORS = [
   "#c2b8a3", // warm neutral
 ];
 
-const PARTICLE_COUNT = 30;
-const DURATION_MS = 2000;
+const PARTICLE_COUNT = 55;
+const DURATION_MS = 2400;
 
 interface Particle {
   x: number;
@@ -49,32 +51,31 @@ export function ConfettiBurst() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const parent = canvas.parentElement;
-    if (!parent) return;
-    const rect = parent.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    // Size to the full viewport
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    // Burst origin: center-top of the card
+    // Burst from the horizontal centre, one-quarter from the top
     const cx = canvas.width / 2;
-    const cy = canvas.height * 0.15;
+    const cy = canvas.height * 0.25;
 
     const particles: Particle[] = [];
     for (let i = 0; i < PARTICLE_COUNT; i++) {
+      // Spread across the upper hemisphere with slight downward bias
       const angle =
-        (Math.PI * 2 * i) / PARTICLE_COUNT + (Math.random() - 0.5) * 0.6;
-      const speed = 1.2 + Math.random() * 3.5;
+        (Math.PI * 2 * i) / PARTICLE_COUNT + (Math.random() - 0.5) * 0.7;
+      const speed = 2.5 + Math.random() * 6;
       particles.push({
         x: cx,
         y: cy,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 1.8,
-        size: 2 + Math.random() * 3.5,
+        vy: Math.sin(angle) * speed - 3,
+        size: 3 + Math.random() * 4,
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        alpha: 0.7 + Math.random() * 0.3,
-        decay: 0.008 + Math.random() * 0.006,
+        alpha: 0.8 + Math.random() * 0.2,
+        decay: 0.006 + Math.random() * 0.005,
         rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.1,
+        rotationSpeed: (Math.random() - 0.5) * 0.12,
         shape: Math.random() > 0.5 ? "circle" : "rect",
       });
     }
@@ -94,7 +95,7 @@ export function ConfettiBurst() {
       for (const p of particles) {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.05; // gentle gravity
+        p.vy += 0.08; // gentle gravity
         p.alpha -= p.decay;
         p.rotation += p.rotationSpeed;
 
@@ -127,7 +128,8 @@ export function ConfettiBurst() {
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none absolute inset-0"
+      style={{ zIndex: 9999 }}
+      className="pointer-events-none fixed inset-0"
       aria-hidden="true"
     />
   );
