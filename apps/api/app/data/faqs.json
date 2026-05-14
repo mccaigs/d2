@@ -1,29 +1,29 @@
 {
   "faqs": [
     {
-      "id": "best_roles",
-      "question": "What kinds of roles is David best suited for?",
-      "answer": "David is best suited for senior AI engineering, AI solutions architecture, applied AI platform work, AI product engineering, and roles where product thinking and systems delivery overlap."
+      "id": "what_bidworx_does",
+      "question": "What does Bidworx analyse?",
+      "answer": "Bidworx analyses tender requirements, buyer priorities, mandatory compliance rules, evidence coverage, scoring signals, submission risks, and missing response artefacts."
     },
     {
-      "id": "technical_strengths",
-      "question": "What is David strongest at technically?",
-      "answer": "David is strongest at applied AI systems design, Python backend work, Next.js product builds, workflow automation, architecture, and turning ideas into working products quickly."
+      "id": "unsupported_claims",
+      "question": "How does Bidworx avoid unsupported claims?",
+      "answer": "It answers from approved structured records and flags missing evidence instead of inventing certifications, delivery examples, policy coverage, or sector experience."
     },
     {
-      "id": "production_systems",
-      "question": "Has David built production-minded systems?",
-      "answer": "Yes. His work is consistently product-oriented and architecture-led, with a focus on shipping usable systems rather than prototypes that go nowhere."
+      "id": "scoring",
+      "question": "How does deterministic scoring work?",
+      "answer": "Opportunity readiness is scored from explicit dimensions such as requirement coverage, evidence strength, compliance readiness, delivery risk, and commercial fit."
     },
     {
-      "id": "full_stack",
-      "question": "Is David full-stack?",
-      "answer": "Yes. David works across backend, frontend, product structure, architecture, and user-facing delivery. His strongest stack combines Python on the backend with Next.js and TypeScript on the frontend."
+      "id": "compliance",
+      "question": "What compliance risks can Bidworx flag?",
+      "answer": "It can flag mandatory documents, pass/fail requirements, missing declarations, unsupported claims, ambiguous buyer instructions, and submission constraints."
     },
     {
-      "id": "why_different",
-      "question": "What makes David different from a typical engineer?",
-      "answer": "He combines technical depth with product instincts, speed of execution, applied AI systems thinking, and the ability to shape a concept into a credible working product quickly."
+      "id": "llm_role",
+      "question": "Is Bidworx a generic AI bid writer?",
+      "answer": "No. The product is designed as procurement intelligence infrastructure. Any generation layer should be optional polish after evidence mapping, scoring, and risk checks."
     }
   ]
 }

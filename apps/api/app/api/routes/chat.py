@@ -22,9 +22,9 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
         QuestionIntent.IDENTITY_SUMMARY: "profile_overview",
         QuestionIntent.GENERAL_PROFILE: "profile_overview",
         QuestionIntent.CAPABILITY: "capabilities",
-        QuestionIntent.WORKING_STYLE: "experience_summary",
+        QuestionIntent.WORKING_STYLE: "workflows_overview",
         QuestionIntent.STRENGTHS: "strengths",
-        QuestionIntent.EXPERIENCE: "projects_overview",
+        QuestionIntent.EXPERIENCE: "workflows_overview",
         QuestionIntent.AVAILABILITY_COMMERCIAL: "engagement_preferences",
     }
     if intent == "unknown":
@@ -41,23 +41,23 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
     # --- CTA rules ---
     # Always: explicit contact intent
     if intent == "contact":
-        cta = ChatCta(type="link", label="Open contact form", href="/contact?intent=general")
+        cta = ChatCta(type="link", label="Analyse a tender", href="/chat?intent=tender")
         show_contact_form = True
         contact_reason = "contact_intent"
-    # High-signal: explicit hire / engage / speak-to-David intent on commercial topics
+    # High-signal: explicit analyse / review / pilot intent on operational topics
     elif intent in {"engagement", "engagement_preferences"} and has_high_intent(message):
-        cta = ChatCta(type="link", label="Open contact form", href="/contact?intent=hire")
+        cta = ChatCta(type="link", label="Analyse a tender", href="/chat?intent=tender")
         show_contact_form = True
         contact_reason = "commercial_intent"
-    # High-signal: role fit questions with genuine hiring intent
+    # High-signal: opportunity scoring questions with genuine analysis intent
     elif intent == "role_fit" and has_high_intent(message):
-        cta = ChatCta(type="link", label="Discuss this with David", href="/contact?intent=hire")
+        cta = ChatCta(type="link", label="Analyse this opportunity", href="/chat?intent=score")
         show_contact_form = True
-        contact_reason = "fit_intent"
+        contact_reason = "scoring_intent"
     # Do NOT attach CTA for:
-    # - General capability / skill / project questions
-    # - Mentions of rates or preferences without explicit hire signal
-    # - Informational role_fit questions (browsing, not buying)
+    # - General capability / evidence / workflow questions
+    # - Mentions of use cases without explicit analysis signal
+    # - Informational scoring questions
 
     metadata = ChatMetadata(
         sources=sources,

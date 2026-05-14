@@ -6,7 +6,7 @@ from app.api.routes import health, chat, profile, suggestions, fit
 
 app = FastAPI(
     title=settings.app_name,
-    description="Recruiter-facing profile assistant API for David Robertson.",
+    description="Evidence-backed bid intelligence API for procurement teams.",
     version=settings.app_version,
     debug=settings.debug,
 )

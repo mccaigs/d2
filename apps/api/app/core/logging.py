@@ -7,4 +7,4 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
-logger = logging.getLogger("davidrobertson.pro")
+logger = logging.getLogger("bidworx")

@@ -27,7 +27,7 @@ const VALID_INTENTS = [
   "full_time",
   "contract",
   "general",
-  "fit_analysis",
+  "bid_readiness",
 ] as const;
 
 function cleanText(value: unknown) {
@@ -224,6 +224,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     submittedAt: payload.timestamp,
-    message: "David will review your enquiry directly. If the brief is a fit, expect a reply within a working day.",
+    message: "Bidworx has captured the procurement intelligence enquiry.",
   });
 }

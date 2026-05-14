@@ -7,15 +7,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
-    app_name: str = "davidrobertson.pro API"
+    app_name: str = "Bidworx API"
     app_version: str = "1.0.0"
     debug: bool = False
     cors_origins: list[str] = Field(
         default=[
             "http://localhost:3000",
             "http://localhost:3001",
-            "https://davidrobertson.pro",
-            "https://www.davidrobertson.pro",
+            "https://bidworx.local",
             "https://d2-psi.vercel.app",
         ],
         alias="CORS_ORIGINS",

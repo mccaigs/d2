@@ -1,0 +1,77 @@
+{
+  "name": "Bidworx",
+  "headline": "Evidence-backed bid intelligence for teams that cannot afford unsupported claims.",
+  "location": "United Kingdom",
+  "website": "https://bidworx.local",
+  "summary": "Bidworx is an operational procurement intelligence platform that analyses tenders, buyer requirements, compliance risks, scoring signals, and evidence coverage before a team commits to a bid response.",
+  "positioning": [
+    "Evidence-backed bid intelligence",
+    "Tender requirement analysis",
+    "Deterministic opportunity scoring",
+    "Compliance and risk review",
+    "Approved evidence library"
+  ],
+  "core_strengths": [
+    "Maps buyer requirements to approved evidence",
+    "Identifies unsupported claims before submission",
+    "Scores bid readiness with deterministic rules",
+    "Surfaces compliance and submission risks",
+    "Structures tender intelligence into decision-ready outputs",
+    "Keeps refusal behaviour scoped when evidence is missing"
+  ],
+  "preferred_roles": [
+    "Bid teams",
+    "Proposal managers",
+    "Procurement consultants",
+    "Capture teams",
+    "Framework managers",
+    "Commercial leaders"
+  ],
+  "availability_summary": "Use Bidworx when a tender, RFP, framework call-off, or buyer question needs evidence-backed analysis before the team writes or submits a response.",
+  "contact_cta": "Start by analysing a tender opportunity, then capture missing evidence, compliance risks, and submission actions.",
+  "stack_highlight": "Structured procurement data + deterministic scoring + streamed evidence-backed answers",
+  "engagement_options": [
+    {
+      "type": "Tender analysis",
+      "description": "Parse buyer requirements, mandatory criteria, scoring hints, and submission constraints."
+    },
+    {
+      "type": "Evidence mapping",
+      "description": "Match claims to approved proof points, case examples, policies, and source categories."
+    },
+    {
+      "type": "Compliance review",
+      "description": "Flag missing declarations, certifications, formatting rules, attachments, and pass/fail risks."
+    },
+    {
+      "type": "Bid readiness scoring",
+      "description": "Produce deterministic opportunity scores with transparent weighted dimensions."
+    }
+  ],
+  "custom_services": [
+    {
+      "name": "Opportunity triage",
+      "description": "Rapid go/no-go intelligence for tender opportunities, including risk, fit, evidence coverage, and next actions.",
+      "pricing": "Placeholder"
+    },
+    {
+      "name": "Submission readiness review",
+      "description": "Checks buyer requirements, mandatory documents, evidence gaps, and unsupported claims before submission.",
+      "pricing": "Placeholder"
+    },
+    {
+      "name": "Evidence library setup",
+      "description": "Structures approved proof points, policies, case examples, accreditations, and reusable bid evidence.",
+      "pricing": "Placeholder"
+    }
+  ],
+  "pricing_notes": "Commercial packaging is a placeholder for the MVP. The product architecture is ready for tender analysis, evidence mapping, and bid readiness scoring.",
+  "high_intent_keywords": [
+    "analyse tender",
+    "score opportunity",
+    "compliance risk",
+    "evidence gap",
+    "submission requirements",
+    "bid readiness"
+  ]
+}

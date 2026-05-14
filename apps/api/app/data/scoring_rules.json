@@ -1,0 +1,29 @@
+{
+  "dimensions": [
+    {
+      "id": "requirement_coverage",
+      "label": "Requirement coverage",
+      "weight": 0.3
+    },
+    {
+      "id": "evidence_strength",
+      "label": "Evidence strength",
+      "weight": 0.3
+    },
+    {
+      "id": "compliance_readiness",
+      "label": "Compliance readiness",
+      "weight": 0.2
+    },
+    {
+      "id": "delivery_risk",
+      "label": "Delivery risk",
+      "weight": 0.1
+    },
+    {
+      "id": "commercial_fit",
+      "label": "Commercial fit",
+      "weight": 0.1
+    }
+  ]
+}

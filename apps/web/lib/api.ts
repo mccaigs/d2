@@ -108,7 +108,7 @@ export async function analyseFit(jobDescription: string): Promise<FitResponse> {
   });
 
   if (!response.ok) {
-    throw new Error(`Fit analysis failed: ${response.status}`);
+    throw new Error(`Bid readiness analysis failed: ${response.status}`);
   }
 
   return response.json() as Promise<FitResponse>;

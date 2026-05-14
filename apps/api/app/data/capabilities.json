@@ -1,0 +1,46 @@
+{
+  "capabilities": [
+    {
+      "name": "Tender requirement extraction",
+      "category": "analysis",
+      "strength": "core",
+      "notes": "Identifies mandatory criteria, weighted questions, buyer outcomes, formatting rules, deadlines, and submission artefacts."
+    },
+    {
+      "name": "Evidence mapping",
+      "category": "evidence",
+      "strength": "core",
+      "notes": "Maps bid claims to approved proof points, delivery examples, certifications, policies, and source categories."
+    },
+    {
+      "name": "Deterministic scoring",
+      "category": "scoring",
+      "strength": "core",
+      "notes": "Scores opportunity readiness from transparent rules rather than opaque generated judgement."
+    },
+    {
+      "name": "Compliance risk checks",
+      "category": "compliance",
+      "strength": "core",
+      "notes": "Flags pass/fail requirements, missing attachments, unsupported declarations, and ambiguous buyer instructions."
+    },
+    {
+      "name": "Buyer requirement summaries",
+      "category": "intelligence",
+      "strength": "core",
+      "notes": "Turns long tender material into structured buyer requirements, response themes, risks, and next actions."
+    },
+    {
+      "name": "Scoped refusal behaviour",
+      "category": "trust",
+      "strength": "core",
+      "notes": "Refuses to invent evidence, certifications, delivery history, or compliance status where the source library does not support it."
+    }
+  ],
+  "working_style": [
+    "Treats tender claims as evidence-backed assertions",
+    "Separates mandatory compliance from scored quality responses",
+    "Prioritises decision-ready summaries over generic bid prose",
+    "Keeps deterministic logic visible through source chips and scoring labels"
+  ]
+}

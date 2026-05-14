@@ -1,27 +1,26 @@
-export const SITE_NAME = "David Robertson";
-export const SITE_URL = "https://davidrobertson.pro";
+export const SITE_NAME = "Bidworx";
+export const SITE_URL = "https://bidworx.local";
 export const SITE_DESCRIPTION =
-  "Senior AI consultant and systems builder focused on applied AI, full-stack product development, and workflow automation.";
+  "Evidence-backed bid intelligence for teams that cannot afford unsupported claims.";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export const SUGGESTED_PROMPTS = [
-  "What kinds of AI roles is David best suited for?",
-  "What production AI systems has David built?",
-  "What is David strongest at technically?",
-  "Has David led full-stack AI product builds?",
-  "What experience does David have with Python and Next.js?",
-  "Can David be hired for a short project or MVP build?",
+  "Analyse this tender opportunity",
+  "What are the likely compliance risks?",
+  "What evidence do we need to support this claim?",
+  "Summarise the buyer requirements",
+  "Score this opportunity",
+  "Identify missing submission requirements",
 ];
 
-export const HIRE_PROMPT =
-  "Can David be hired for a short project or MVP build?";
+export const HIRE_PROMPT = "Analyse this tender opportunity";
 export const STACK_HIGHLIGHT =
-  "Python backend + Next.js frontend - built for fast, production-ready delivery.";
+  "Structured evidence + deterministic scoring + compliance risk checks.";
 
 export const SOCIAL_LINKS = {
-  github: "https://github.com/davidrobertson",
-  linkedin: "https://linkedin.com/in/davidrobertson",
-  twitter: "https://twitter.com/davidrobertson",
+  github: "https://github.com/bidworx",
+  linkedin: "https://linkedin.com/company/bidworx",
+  twitter: "https://twitter.com/bidworx",
 };

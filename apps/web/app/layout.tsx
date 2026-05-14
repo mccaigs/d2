@@ -2,32 +2,32 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "David Robertson — AI Architect",
+  title: "Bidworx - Evidence-backed bid intelligence",
   description:
-    "Interactive AI-powered CV with live chat, deterministic fit analysis, and real-time evaluation.",
+    "Evidence-backed bid intelligence for teams that cannot afford unsupported claims.",
   openGraph: {
-    title: "David Robertson — Interactive AI CV",
+    title: "Bidworx - Evidence-backed bid intelligence",
     description:
-      "Ask questions, analyse role fit, and explore a live AI-powered CV experience.",
-    url: "https://www.davidrobertson.pro",
-    siteName: "David Robertson",
+      "Analyse tenders, score opportunities, map evidence, and identify compliance risk.",
+    url: "https://bidworx.local",
+    siteName: "Bidworx",
     locale: "en_GB",
     type: "website",
     images: [
       {
-        url: "https://www.davidrobertson.pro/og-image.png",
+        url: "https://bidworx.local/og-image.png",
         width: 1200,
         height: 630,
-        alt: "David Robertson — Interactive AI CV",
+        alt: "Bidworx - Evidence-backed bid intelligence",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "David Robertson — Interactive AI CV",
+    title: "Bidworx - Evidence-backed bid intelligence",
     description:
-      "Ask questions, analyse role fit, and explore a live AI-powered CV experience.",
-    images: ["https://www.davidrobertson.pro/og-image.png"],
+      "Analyse tenders, score opportunities, map evidence, and identify compliance risk.",
+    images: ["https://bidworx.local/og-image.png"],
   },
 };
 

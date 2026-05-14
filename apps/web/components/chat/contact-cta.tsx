@@ -15,7 +15,7 @@ export function ContactCta({ cta }: ContactCtaProps) {
     <div className="mt-5">
       <Link
         href={cta.href}
-        className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 transition-colors hover:bg-amber-100"
+        className="inline-flex items-center gap-2 rounded-lg bg-[#22C55E] px-4 py-2 text-sm font-semibold text-[#07111F] transition-colors hover:bg-[#38BDF8]"
       >
         <span>{cta.label}</span>
         <ArrowUpRight className="h-3.5 w-3.5" />

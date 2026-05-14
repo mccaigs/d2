@@ -8,78 +8,83 @@ from app.services.classifier import Intent
 
 _DATA_DIR = Path(__file__).parent.parent / "data"
 
-# ---------------------------------------------------------------------------
-# CV data loader — cached in module scope to avoid re-reading per request
-# ---------------------------------------------------------------------------
-_cv_cache: dict[str, Any] | None = None
+
+def _load(filename: str) -> Any:
+    with open(_DATA_DIR / filename, encoding="utf-8") as f:
+        return json.load(f)
 
 
-def _load_cv() -> dict[str, Any]:
-    global _cv_cache
-    if _cv_cache is None:
-        _cv_cache = _load("david_cv.json")
-    return _cv_cache
+_product_cache: dict[str, Any] | None = None
+
+
+def _load_product() -> dict[str, Any]:
+    global _product_cache
+    if _product_cache is None:
+        _product_cache = _load("product.json")
+    return _product_cache
 
 
 def get_profile_summary() -> dict[str, Any]:
-    cv = _load_cv()
+    product = _load_product()
     return {
-        "name": cv.get("name", ""),
-        "title": cv.get("title", ""),
-        "location": cv.get("location", ""),
-        "profile": cv.get("profile", ""),
-        "capabilities": cv.get("capabilities", []),
+        "name": product.get("name", ""),
+        "title": product.get("headline", ""),
+        "location": product.get("location", ""),
+        "profile": product.get("summary", ""),
+        "capabilities": product.get("core_strengths", []),
     }
 
 
 def get_capabilities() -> dict[str, Any]:
-    cv = _load_cv()
+    product = _load_product()
+    caps = _load("capabilities.json")
     return {
-        "capabilities": cv.get("capabilities", []),
-        "core_skills": cv.get("core_skills", []),
-        "key_systems": cv.get("key_systems", []),
+        "capabilities": [item.get("name", "") for item in caps.get("capabilities", [])],
+        "core_skills": product.get("core_strengths", []),
+        "key_systems": [item.get("name", "") for item in _load("workflows.json").get("workflows", [])],
     }
 
 
 def get_core_skills() -> list[str]:
-    cv = _load_cv()
-    return cv.get("core_skills", [])
+    return _load_product().get("core_strengths", [])
 
 
 def get_tech_stack() -> dict[str, Any]:
-    cv = _load_cv()
-    return cv.get("tech_stack", {})
+    return {
+        "backend": ["FastAPI", "Pydantic models", "deterministic services"],
+        "frontend": ["Next.js", "TypeScript", "streaming response UX"],
+        "data": ["structured JSON knowledge", "evidence categories", "scoring rules"],
+        "trust": ["scoped refusals", "source chips", "approved evidence only"],
+    }
 
 
 def get_experience() -> list[dict[str, Any]]:
-    cv = _load_cv()
-    return cv.get("experience", [])
+    return _load("procurement_examples.json").get("examples", [])
 
 
 def get_projects() -> list[dict[str, Any]]:
-    cv = _load_cv()
-    return cv.get("projects", [])
+    return _load("workflows.json").get("workflows", [])
 
 
 def get_engagement_preferences() -> dict[str, Any]:
-    cv = _load_cv()
-    return cv.get("engagement_preferences", {})
+    product = _load_product()
+    return {
+        "work_type": [item.get("type", "") for item in product.get("engagement_options", [])],
+        "location": ["Procurement teams", "Bid teams", "Framework and tender workflows"],
+        "rates": {},
+        "full_time_preferences": {"ideal_roles": product.get("preferred_roles", [])},
+        "focus": product.get("availability_summary", ""),
+    }
 
-# ---------------------------------------------------------------------------
-# Synonym groups — any token in a group is treated as equivalent to all others
-# ---------------------------------------------------------------------------
+
 _SYNONYM_GROUPS: list[list[str]] = [
-    ["recruiter", "recruiters", "hiring", "recruitment", "talent"],
-    ["ai", "llm", "agentic", "agent", "gpt", "ml"],
-    ["frontend", "nextjs", "react", "ui"],
-    ["backend", "python", "fastapi", "server", "api"],
-    ["architecture", "systems", "platform", "infrastructure"],
-    ["saas", "product", "startup"],
-    ["automation", "pipeline", "workflow", "workflows"],
-    ["fullstack", "end-to-end"],
-    ["built", "build", "builds", "building", "created", "made", "developed", "ship", "shipped"],
-    ["role", "roles", "position", "job"],
-    ["suit", "suited", "suitable", "fit", "match"],
+    ["tender", "rfp", "bid", "opportunity", "call-off", "framework"],
+    ["buyer", "authority", "client", "evaluator", "procurement"],
+    ["evidence", "proof", "source", "support", "claim"],
+    ["compliance", "mandatory", "pass/fail", "submission", "attachment"],
+    ["score", "scoring", "readiness", "fit", "go/no-go"],
+    ["risk", "gap", "missing", "unsupported"],
+    ["workflow", "process", "analysis", "review"],
 ]
 
 _SYNONYM_MAP: dict[str, set[str]] = {}
@@ -88,32 +93,16 @@ for group in _SYNONYM_GROUPS:
     for term in group:
         _SYNONYM_MAP[term] = expanded
 
-# ---------------------------------------------------------------------------
-# Multi-word phrases that should get strong boosts when present in the query
-# ---------------------------------------------------------------------------
 _BOOST_PHRASES: list[tuple[str, float]] = [
-    ("solutions architect", 4.0),
-    ("solution architect", 4.0),
-    ("applied ai", 3.5),
-    ("full stack", 3.0),
-    ("full-stack", 3.0),
-    ("fullstack", 3.0),
-    ("next.js", 3.0),
-    ("nextjs", 3.0),
-    ("fastapi", 3.0),
-    ("job fit", 3.0),
-    ("recruiter tools", 4.0),
-    ("recruitment tools", 4.0),
-    ("ai product", 2.5),
-    ("ai products", 2.5),
-    ("ai systems", 2.5),
-    ("ai engineer", 2.5),
-    ("systems architect", 3.0),
-    ("product engineer", 2.5),
-    ("workflow automation", 2.5),
-    ("typescript", 2.0),
-    ("python", 2.0),
-    ("react", 1.5),
+    ("buyer requirements", 4.0),
+    ("compliance risks", 4.0),
+    ("submission requirements", 4.0),
+    ("evidence backed", 3.5),
+    ("unsupported claims", 3.5),
+    ("bid readiness", 3.5),
+    ("score this opportunity", 3.0),
+    ("analyse this tender", 3.0),
+    ("analyze this tender", 3.0),
 ]
 
 _STOPWORDS = {
@@ -121,16 +110,10 @@ _STOPWORDS = {
     "do", "does", "did", "has", "have", "had", "will", "would", "can", "could",
     "should", "may", "might", "of", "in", "on", "at", "to", "for", "with",
     "and", "or", "but", "if", "as", "by", "from", "that", "this", "these",
-    "those", "it", "its", "he", "she", "they", "them", "his", "her", "their",
-    "what", "when", "where", "which", "who", "why", "how",
-    "about", "some", "any", "all", "me", "you", "your", "i", "we", "our",
-    "david", "robertson",
+    "those", "it", "its", "they", "them", "their", "what", "when", "where",
+    "which", "who", "why", "how", "about", "some", "any", "all", "me", "you",
+    "your", "i", "we", "our", "bidworx",
 }
-
-
-def _load(filename: str) -> Any:
-    with open(_DATA_DIR / filename, encoding="utf-8") as f:
-        return json.load(f)
 
 
 def _normalise(text: str) -> str:
@@ -138,9 +121,8 @@ def _normalise(text: str) -> str:
 
 
 def _tokenise(text: str) -> list[str]:
-    """Lowercase, strip punctuation, split into tokens."""
     text = text.lower()
-    text = re.sub(r"[^\w\s\-\.]", " ", text)
+    text = re.sub(r"[^\w\s\-\/\.]", " ", text)
     return [t for t in text.split() if len(t) > 1]
 
 
@@ -157,7 +139,6 @@ def _expand_tokens(tokens: list[str]) -> set[str]:
 
 
 def _active_phrases(query_norm: str) -> list[tuple[str, float]]:
-    """Return boost phrases that appear in the query, plus their weight."""
     return [(p, w) for p, w in _BOOST_PHRASES if p in query_norm]
 
 
@@ -166,69 +147,37 @@ def _score_text(
     text: str,
     phrases: list[tuple[str, float]] | None = None,
 ) -> float:
-    """Token overlap + phrase substring boosts.
-
-    Token score: overlap / total-query-tokens (so specific queries are harder
-    to max out and prioritise breadth of match).
-    Phrase score: additive per matching multi-word phrase.
-    """
     if not text:
         return 0.0
     norm = _normalise(text)
     score = 0.0
-
     if query_tokens:
         text_tokens = set(_tokenise(norm))
         hits = query_tokens & text_tokens
         if hits:
             score += len(hits) / max(len(query_tokens), 1)
-
     if phrases:
         for phrase, weight in phrases:
             if phrase in norm:
                 score += weight
-
     return score
 
 
-def _score_project(
-    query_tokens: set[str],
-    phrases: list[tuple[str, float]],
-    project: dict,
-) -> float:
+def _score_record(query_tokens: set[str], phrases: list[tuple[str, float]], item: dict) -> float:
     score = 0.0
-    score += _score_text(query_tokens, project.get("name", ""), phrases) * 3.5
-    score += _score_text(query_tokens, project.get("type", ""), phrases) * 1.5
-    score += _score_text(query_tokens, project.get("summary", ""), phrases) * 2.0
-    for theme in project.get("themes", []):
-        score += _score_text(query_tokens, theme, phrases) * 2.0
-    for tech in project.get("tech", []):
-        score += _score_text(query_tokens, tech, phrases) * 2.0
-    for highlight in project.get("highlights", []):
-        score += _score_text(query_tokens, highlight, phrases) * 1.2
-    return score
-
-
-def _score_skill(
-    query_tokens: set[str],
-    phrases: list[tuple[str, float]],
-    skill: dict,
-) -> float:
-    score = 0.0
-    score += _score_text(query_tokens, skill.get("name", ""), phrases) * 3.5
-    score += _score_text(query_tokens, skill.get("category", ""), phrases) * 1.5
-    score += _score_text(query_tokens, skill.get("notes", ""), phrases) * 1.0
-    return score
-
-
-def _score_faq(
-    query_tokens: set[str],
-    phrases: list[tuple[str, float]],
-    faq: dict,
-) -> float:
-    score = 0.0
-    score += _score_text(query_tokens, faq.get("question", ""), phrases) * 3.5
-    score += _score_text(query_tokens, faq.get("answer", ""), phrases) * 2.0
+    for key, weight in [
+        ("name", 3.5),
+        ("title", 3.0),
+        ("type", 1.5),
+        ("category", 1.5),
+        ("summary", 2.0),
+        ("description", 2.0),
+        ("notes", 1.5),
+    ]:
+        score += _score_text(query_tokens, str(item.get(key, "")), phrases) * weight
+    for list_key in ["themes", "tech", "highlights"]:
+        for value in item.get(list_key, []):
+            score += _score_text(query_tokens, value, phrases) * 1.5
     return score
 
 
@@ -250,127 +199,103 @@ def _prepare_query(message: str) -> tuple[set[str], list[tuple[str, float]]]:
 
 
 def retrieve(intent: Intent, message: str) -> tuple[dict[str, Any], list[SourceChip]]:
-    """Return structured data records and source chips for a given intent."""
-
     sources: list[SourceChip] = []
     data: dict[str, Any] = {}
 
     query_tokens, phrases = _prepare_query(message)
     has_query = bool(query_tokens or phrases)
 
-    if intent == "skills":
-        raw = _load("skills.json")
-        skills = raw.get("technical_skills", [])
-        style = raw.get("working_style", [])
-        if has_query:
-            data["technical_skills"] = _rank(skills, lambda s: _score_skill(query_tokens, phrases, s))
-        else:
-            data["technical_skills"] = skills
-        data["working_style"] = style
-        sources.append(SourceChip(label="Skills", category="skills"))
+    if intent == "capabilities":
+        raw = _load("capabilities.json")
+        caps = raw.get("capabilities", [])
+        data["capabilities"] = _rank(caps, lambda s: _score_record(query_tokens, phrases, s)) if has_query else caps
+        data["working_style"] = raw.get("working_style", [])
+        sources.append(SourceChip(label="Capabilities", category="capabilities"))
 
     elif intent == "technical_stack":
         data["tech_stack"] = get_tech_stack()
         data["core_skills"] = get_core_skills()
-        sources.append(SourceChip(label="CV Stack", category="cv"))
+        sources.append(SourceChip(label="Architecture", category="architecture"))
 
-    elif intent == "projects":
-        raw = _load("projects.json")
-        projects = raw.get("projects", [])
-        data["projects"] = _rank(
-            projects,
-            lambda p: _score_project(query_tokens, phrases, p),
-            n=5,
-        )
-        sources.append(SourceChip(label="Projects", category="projects"))
+    elif intent == "workflows":
+        raw = _load("workflows.json")
+        workflows = raw.get("workflows", [])
+        data["workflows"] = _rank(workflows, lambda p: _score_record(query_tokens, phrases, p), n=5)
+        sources.append(SourceChip(label="Workflows", category="workflows"))
 
-    elif intent == "projects_overview":
-        cv = _load_cv()
-        data["projects"] = get_projects()
-        data["key_systems"] = cv.get("key_systems", [])
-        data["products"] = cv.get("products", [])
-        sources.append(SourceChip(label="CV Projects", category="cv"))
+    elif intent == "workflows_overview":
+        data["workflows"] = get_projects()
+        data["scoring_rules"] = _load("scoring_rules.json").get("dimensions", [])
+        data["evidence_categories"] = _load("evidence_categories.json").get("categories", [])
+        sources.append(SourceChip(label="Tender Intelligence Workflow", category="workflows"))
 
-    elif intent == "experience":
-        raw = _load("experience.json")
-        data["experience"] = raw.get("experience", [])
+    elif intent == "procurement_examples":
+        raw = _load("procurement_examples.json")
+        data["experience"] = raw.get("examples", [])
         data["capabilities"] = raw.get("capabilities", [])
         data["industries"] = raw.get("industries_or_domains", [])
-        sources.append(SourceChip(label="Experience", category="experience"))
+        data["compliance_rules"] = _load("compliance_rules.json").get("rules", [])
+        sources.append(SourceChip(label="Compliance Rules", category="compliance"))
 
-    elif intent == "experience_summary":
+    elif intent == "procurement_summary":
         data["experience"] = get_experience()
-        data["capabilities"] = get_capabilities().get("capabilities", [])
-        sources.append(SourceChip(label="CV Experience", category="cv"))
+        data["capabilities"] = _load("procurement_examples.json").get("capabilities", [])
+        data["workflows"] = get_projects()
+        sources.append(SourceChip(label="Buyer Requirements", category="procurement"))
 
     elif intent == "strengths":
-        profile = _load("profile.json")
-        skills = _load("skills.json")
-        data["core_strengths"] = profile.get("core_strengths", [])
-        data["working_style"] = skills.get("working_style", [])
-        sources.append(SourceChip(label="Strengths", category="profile"))
+        product = _load_product()
+        caps = _load("capabilities.json")
+        data["core_strengths"] = product.get("core_strengths", [])
+        data["working_style"] = caps.get("working_style", [])
+        sources.append(SourceChip(label="Product Principles", category="product"))
 
     elif intent == "role_fit":
-        profile = _load("profile.json")
-        job_titles = _load("job_titles.json")
-        experience = _load("experience.json")
-        cv = _load_cv()
-        data["positioning"] = profile.get("positioning", [])
-        data["preferred_roles"] = profile.get("preferred_roles", [])
-        titles = job_titles.get("relevant_job_titles", [])
-        # If the query mentions a specific role, surface most relevant titles first
-        if has_query:
-            titles = sorted(
-                titles,
-                key=lambda t: _score_text(query_tokens, t, phrases),
-                reverse=True,
-            )
-        data["relevant_job_titles"] = titles
-        data["capabilities"] = experience.get("capabilities", [])
-        data["key_systems"] = cv.get("key_systems", [])
-        data["projects"] = cv.get("projects", [])
-        data["engagement_focus"] = cv.get("engagement_preferences", {}).get("focus", "")
-        sources.append(SourceChip(label="Role Fit", category="profile"))
-        sources.append(SourceChip(label="Preferred Roles", category="profile"))
+        product = _load_product()
+        data["positioning"] = product.get("positioning", [])
+        data["preferred_roles"] = product.get("preferred_roles", [])
+        data["relevant_job_titles"] = _load("buyer_roles.json").get("buyer_roles", [])
+        data["capabilities"] = _load("procurement_examples.json").get("capabilities", [])
+        data["key_systems"] = [w.get("name", "") for w in get_projects()]
+        data["projects"] = get_projects()
+        data["engagement_focus"] = product.get("availability_summary", "")
+        data["scoring_rules"] = _load("scoring_rules.json").get("dimensions", [])
+        sources.append(SourceChip(label="Scoring Rules", category="scoring"))
+        sources.append(SourceChip(label="Buyer Roles", category="procurement"))
 
     elif intent == "preferred_roles":
-        profile = _load("profile.json")
-        job_titles = _load("job_titles.json")
-        data["preferred_roles"] = profile.get("preferred_roles", [])
-        data["relevant_job_titles"] = job_titles.get("relevant_job_titles", [])
-        data["availability_summary"] = profile.get("availability_summary", "")
-        sources.append(SourceChip(label="Preferred Roles", category="profile"))
+        product = _load_product()
+        data["preferred_roles"] = product.get("preferred_roles", [])
+        data["relevant_job_titles"] = _load("buyer_roles.json").get("buyer_roles", [])
+        data["availability_summary"] = product.get("availability_summary", "")
+        sources.append(SourceChip(label="Buyer Roles", category="procurement"))
 
     elif intent == "availability":
-        profile = _load("profile.json")
-        data["availability_summary"] = profile.get("availability_summary", "")
-        data["contact_cta"] = profile.get("contact_cta", "")
-        sources.append(SourceChip(label="Availability", category="profile"))
+        product = _load_product()
+        data["availability_summary"] = product.get("availability_summary", "")
+        data["contact_cta"] = product.get("contact_cta", "")
+        sources.append(SourceChip(label="Use Cases", category="product"))
 
     elif intent == "engagement":
-        profile = _load("profile.json")
-        data["engagement_options"] = profile.get("engagement_options", [])
-        data["custom_services"] = profile.get("custom_services", [])
-        data["pricing_notes"] = profile.get("pricing_notes", "")
-        data["stack_highlight"] = profile.get("stack_highlight", "")
-        data["availability_summary"] = profile.get("availability_summary", "")
-        data["contact_cta"] = profile.get("contact_cta", "")
-        sources.append(SourceChip(label="Engagement Options", category="profile"))
+        product = _load_product()
+        data["engagement_options"] = product.get("engagement_options", [])
+        data["custom_services"] = product.get("custom_services", [])
+        data["pricing_notes"] = product.get("pricing_notes", "")
+        data["stack_highlight"] = product.get("stack_highlight", "")
+        data["availability_summary"] = product.get("availability_summary", "")
+        data["contact_cta"] = product.get("contact_cta", "")
+        sources.append(SourceChip(label="Operational Use Cases", category="product"))
 
-    elif intent == "achievements":
-        raw = _load("achievements.json")
-        data["achievements"] = raw.get("achievements", [])
-        sources.append(SourceChip(label="Achievements", category="achievements"))
+    elif intent == "proof_points":
+        raw = _load("proof_points.json")
+        data["achievements"] = raw.get("proof_points", [])
+        sources.append(SourceChip(label="Proof Points", category="proof"))
 
     elif intent == "faq":
         raw = _load("faqs.json")
         faqs = raw.get("faqs", [])
-        data["faqs"] = _rank(
-            faqs,
-            lambda f: _score_faq(query_tokens, phrases, f),
-            n=3,
-        )
-        sources.append(SourceChip(label="Profile FAQ", category="faq"))
+        data["faqs"] = _rank(faqs, lambda f: _score_record(query_tokens, phrases, f), n=3)
+        sources.append(SourceChip(label="FAQ", category="faq"))
 
     elif intent == "profile_overview":
         profile_data = get_profile_summary()
@@ -383,15 +308,7 @@ def retrieve(intent: Intent, message: str) -> tuple[dict[str, Any], list[SourceC
         data["core_skills"] = get_core_skills()
         data["ideal_roles"] = prefs.get("full_time_preferences", {}).get("ideal_roles", [])
         data["focus"] = prefs.get("focus", "")
-        sources.append(SourceChip(label="CV Profile", category="cv"))
-
-    elif intent == "capabilities":
-        caps_data = get_capabilities()
-        data["capabilities"] = caps_data["capabilities"]
-        data["core_skills"] = caps_data["core_skills"]
-        data["key_systems"] = caps_data["key_systems"]
-        data["tech_stack"] = get_tech_stack()
-        sources.append(SourceChip(label="Capabilities", category="cv"))
+        sources.append(SourceChip(label="Product Overview", category="product"))
 
     elif intent == "engagement_preferences":
         prefs = get_engagement_preferences()
@@ -400,16 +317,13 @@ def retrieve(intent: Intent, message: str) -> tuple[dict[str, Any], list[SourceC
         data["rates"] = prefs.get("rates", {})
         data["full_time_preferences"] = prefs.get("full_time_preferences", {})
         data["focus"] = prefs.get("focus", "")
-        data["availability_summary"] = _load_cv().get("contact", {}).get("availability", "")
-        sources.append(SourceChip(label="Engagement Preferences", category="cv"))
+        data["availability_summary"] = _load_product().get("contact_cta", "")
+        sources.append(SourceChip(label="Bid Team Use Cases", category="product"))
 
     elif intent == "contact":
-        prefs = get_engagement_preferences()
-        data["availability"] = _load_cv().get("contact", {}).get("availability", "")
-        data["focus"] = prefs.get("focus", "")
-        sources.append(SourceChip(label="Contact", category="cv"))
-
-    else:
-        data = {}
+        product = _load_product()
+        data["availability"] = product.get("contact_cta", "")
+        data["focus"] = product.get("availability_summary", "")
+        sources.append(SourceChip(label="Next Step", category="product"))
 
     return data, sources

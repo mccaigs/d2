@@ -1,0 +1,71 @@
+{
+  "workflows": [
+    {
+      "id": "tender-triage",
+      "name": "Tender opportunity triage",
+      "type": "Operational workflow",
+      "summary": "Assess whether a tender is worth pursuing by analysing buyer fit, mandatory requirements, evidence coverage, scoring signals, and delivery risk.",
+      "highlights": [
+        "Extract mandatory and weighted requirements",
+        "Score bid readiness using deterministic rules",
+        "Identify missing documents, policies, and proof points"
+      ],
+      "tech": [
+        "FastAPI",
+        "Pydantic",
+        "Structured JSON",
+        "Deterministic retrieval"
+      ],
+      "themes": [
+        "opportunity scoring",
+        "go/no-go",
+        "buyer requirements",
+        "risk"
+      ]
+    },
+    {
+      "id": "evidence-coverage",
+      "name": "Evidence coverage review",
+      "type": "Evidence workflow",
+      "summary": "Map proposed bid claims against approved proof points so unsupported statements are caught before response drafting.",
+      "highlights": [
+        "Connect claims to proof categories",
+        "Flag unsupported or weakly supported claims",
+        "Surface source chips for reviewer confidence"
+      ],
+      "tech": [
+        "Structured evidence library",
+        "Keyword retrieval",
+        "Source chips"
+      ],
+      "themes": [
+        "evidence",
+        "claims",
+        "proof points",
+        "source control"
+      ]
+    },
+    {
+      "id": "compliance-check",
+      "name": "Compliance and submission check",
+      "type": "Risk workflow",
+      "summary": "Review submission instructions, eligibility rules, pass/fail questions, declarations, attachments, and buyer-specific constraints.",
+      "highlights": [
+        "Separate compliance blockers from quality scoring risks",
+        "List missing submission requirements",
+        "Produce action-oriented risk notes"
+      ],
+      "tech": [
+        "Deterministic classifier",
+        "Compliance rules",
+        "Streaming response UX"
+      ],
+      "themes": [
+        "compliance",
+        "submission",
+        "attachments",
+        "risk"
+      ]
+    }
+  ]
+}

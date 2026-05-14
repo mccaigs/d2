@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "davidrobertson-pro-api"
+name = "bidworx-api"
 version = "1.0.0"
-description = "Recruiter-facing profile assistant API for David Robertson"
+description = "Evidence-backed bid intelligence API for procurement teams"
 requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.115.0",

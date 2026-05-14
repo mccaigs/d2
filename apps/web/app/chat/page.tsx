@@ -1,9 +1,9 @@
 import { ChatShell } from "@/components/chat/chat-shell";
 
 export const metadata = {
-  title: "Ask David Robertson — Profile Assistant",
+  title: "Ask Bidworx - Tender intelligence",
   description:
-    "Ask about David Robertson's skills, projects, experience, and role suitability.",
+    "Ask Bidworx to analyse tender opportunities, compliance risk, evidence gaps, and buyer requirements.",
 };
 
 export default function ChatPage() {

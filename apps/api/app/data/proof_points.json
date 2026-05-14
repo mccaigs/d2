@@ -1,0 +1,20 @@
+{
+  "proof_points": [
+    {
+      "title": "Approved evidence only",
+      "description": "Bidworx is designed to answer from structured source records and to refuse unsupported procurement claims."
+    },
+    {
+      "title": "Deterministic readiness scoring",
+      "description": "Opportunity scores are assembled from explicit scoring dimensions, weights, and rule-based evidence checks."
+    },
+    {
+      "title": "Source chips for reviewer trust",
+      "description": "Answers include evidence/source chips so bid teams can see which record type supports the response."
+    },
+    {
+      "title": "Compliance-first workflow",
+      "description": "Mandatory requirements, submission instructions, and pass/fail risks are treated separately from scored quality responses."
+    }
+  ]
+}

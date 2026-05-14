@@ -1,0 +1,140 @@
+# Bidworx v2 Coding Rules
+
+## Product Identity
+You are building Bidworx v2: a deterministic bid intelligence and evidence orchestration platform.
+
+This is not a generic AI bid writer.
+This is not a prompt wrapper.
+This is not a chatbot-first product.
+
+The core product is a trustworthy system that extracts tender requirements, maps them to approved evidence, scores bid readiness, identifies risks, and composes responses only from verified claims.
+
+## Language and Tone
+- Use British English.
+- Do not use em dashes.
+- Write with a senior enterprise software tone.
+- Avoid hype, fluff, and generic AI language.
+- Avoid phrases like "unlock the power of AI" or "supercharge your bids".
+- Prefer terms like evidence, coverage, readiness, compliance, confidence, risk, audit trail, approved claims, and unsupported claims.
+
+## Architecture Principles
+- Deterministic first.
+- LLM optional.
+- Evidence before prose.
+- Refuse unsupported claims.
+- Explain every score.
+- Prefer structured JSON over free-form text.
+- Use typed schemas wherever possible.
+- Keep scoring transparent and easy to calibrate.
+- Separate extraction, matching, scoring, planning, and composing.
+
+## Hard Rules
+- Never generate a claim that is not backed by approved evidence.
+- Never treat an LLM as the source of truth.
+- Never hide missing evidence.
+- Never inflate confidence to make the system look better.
+- Never create fake clients, certifications, figures, case studies, or outcomes.
+- Never use unapproved evidence in final responses.
+- Never claim ISO, SOC2, Cyber Essentials, or similar certifications unless present in approved evidence.
+- Never make the product dependent on an LLM for the MVP.
+
+## Preferred Stack Assumptions
+- Next.js / React / TypeScript for UI.
+- FastAPI / Python / Pydantic v2 if using a Python backend.
+- Structured JSON data for sample evidence and tenders.
+- Tailwind and shadcn-style UI components if already available.
+- Keep the system easy to demo locally.
+
+## Domain Model Rules
+Use these mappings when adapting code from the deterministic CV system:
+
+candidate -> organisation
+job -> tender
+fit score -> bid readiness score
+skills -> capabilities
+career evidence -> bid evidence
+interview talking points -> response strategy
+recruiter -> buyer / evaluator
+out-of-scope refusal -> unsupported claim refusal
+
+## Required Modules
+Create or adapt modules for:
+- tender parsing
+- requirement extraction
+- requirement classification
+- evidence matching
+- coverage scoring
+- bid/no-bid decisioning
+- compliance matrix generation
+- risk register generation
+- answer plan building
+- deterministic template composition
+- unsupported claim refusal
+
+## Scoring Rules
+Use these bands:
+- 85-100: Strong bid
+- 70-84: Bid with mitigations
+- 55-69: Weak bid
+- 0-54: Do not bid unless strategic
+
+Subscores should include:
+- requirement coverage
+- mandatory compliance
+- evidence strength
+- sector fit
+- delivery credibility
+- risk exposure
+- deadline feasibility
+
+Scores must include rationale.
+
+## UI Rules
+The UI should feel:
+- precise
+- calm
+- premium
+- operational
+- enterprise-grade
+- evidence-led
+
+Avoid:
+- gimmicky chatbot UI
+- fake AI sparkles
+- excessive animation
+- vague marketing cards
+- overcomplicated dashboards
+
+Create these views:
+1. Bid Readiness
+2. Compliance Matrix
+3. Response Builder
+
+## Refusal Behaviour
+When evidence is missing, the system should say so clearly.
+
+Example:
+"I cannot include the claim 'ISO 27001 certified' because no approved evidence for this certification exists in the evidence library."
+
+Do not apologise unnecessarily. Be precise.
+
+## Optional LLM Layer
+If adding an LLM later:
+- It may only rewrite approved claims.
+- It must not create new claims.
+- Run a claim-drift check after generation.
+- Any unsupported addition must be blocked or flagged.
+
+## Demo Priority
+Optimise for a sharp five-minute demo:
+1. Paste tender.
+2. Extract requirements.
+3. Show evidence coverage.
+4. Show bid readiness score.
+5. Show compliance matrix.
+6. Show answer plan.
+7. Show deterministic draft.
+8. Show unsupported claim refusal.
+
+## Best Demo Line
+The safest AI bid system is the one that knows when not to write.

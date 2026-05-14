@@ -1,0 +1,19 @@
+{
+  "rules": [
+    {
+      "id": "mandatory-documents",
+      "label": "Mandatory documents",
+      "description": "Flag any required attachment, declaration, pricing schedule, certificate, or policy that is missing from the evidence pack."
+    },
+    {
+      "id": "unsupported-claims",
+      "label": "Unsupported claims",
+      "description": "Refuse or flag any claim that cannot be mapped to an approved proof point or evidence category."
+    },
+    {
+      "id": "pass-fail-criteria",
+      "label": "Pass/fail criteria",
+      "description": "Separate binary compliance requirements from quality-scored requirements."
+    }
+  ]
+}

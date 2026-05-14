@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, ScanText, Zap } from "lucide-react";
+import { ArrowLeft, Gauge, ScanText, ShieldCheck } from "lucide-react";
 import { ChatInput } from "./chat-input";
 import { ChatMessageComponent } from "./chat-message";
 import { SuggestionCards } from "./suggestion-cards";
@@ -23,8 +23,6 @@ export function ChatShell() {
   const isLoadingRef = useRef(false);
   const hasMessages = messages.length > 0;
 
-  // Buffer streamed chunks and flush them on an animation frame so we don't
-  // re-render for every tiny SSE event. Keeps the reveal smooth.
   const pendingRef = useRef<string>("");
   const flushScheduledRef = useRef(false);
 
@@ -95,7 +93,6 @@ export function ChatShell() {
         scheduleFlush();
       },
       onMetadata: (meta: StreamMetadata) => {
-        // Ensure any buffered text is visible before metadata-dependent UI shows.
         flushNow();
         setMessages((prev) =>
           prev.map((m) =>
@@ -138,35 +135,33 @@ export function ChatShell() {
       },
     });
 
-    // Failsafe: if something swallowed the callbacks, still clear state.
     if (isLoadingRef.current) stop();
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-[#faf8f0]">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-stone-200 bg-[#faf8f0]/95 backdrop-blur-sm shrink-0">
+    <div className="flex h-screen flex-col bg-[#07111F] text-[#F8FAFC]">
+      <header className="flex shrink-0 items-center justify-between border-b border-[#1E3A5F] bg-[#07111F]/95 px-6 py-4 backdrop-blur-sm">
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm text-stone-500 hover:text-stone-800 transition-colors"
+          className="flex items-center gap-2 text-sm text-[#94A3B8] transition-colors hover:text-[#F8FAFC]"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>David Robertson</span>
+          <ArrowLeft className="h-4 w-4" />
+          <span>Bidworx</span>
         </Link>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowFit((v) => !v)}
-            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all duration-150 ${
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs transition-all duration-150 ${
               showFit
-                ? "bg-stone-800 text-white border-stone-800"
-                : "text-stone-500 border-stone-200 hover:border-stone-400 hover:text-stone-700"
+                ? "border-[#38BDF8] bg-[#38BDF8] text-[#07111F]"
+                : "border-[#1E3A5F] text-[#94A3B8] hover:border-[#38BDF8] hover:text-[#F8FAFC]"
             }`}
           >
-            <ScanText className="w-3.5 h-3.5" />
-            <span>Fit analysis</span>
+            <ScanText className="h-3.5 w-3.5" />
+            <span>Bid readiness</span>
           </button>
-          <p className="text-xs text-stone-400 uppercase tracking-widest font-medium">
-            Profile Assistant
+          <p className="text-xs font-medium uppercase tracking-widest text-[#94A3B8]">
+            Ask Bidworx
           </p>
         </div>
       </header>
@@ -179,33 +174,32 @@ export function ChatShell() {
         <>
           <main className="flex-1 overflow-y-auto">
             {!hasMessages ? (
-              <div className="flex flex-col items-center justify-center min-h-full px-6 py-16">
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-8">
-                  <span className="text-amber-800 font-serif text-xl font-semibold">DR</span>
+              <div className="flex min-h-full flex-col items-center justify-center px-6 py-16">
+                <div className="mb-8 flex h-14 w-14 items-center justify-center border border-[#1E3A5F] bg-[#0D1B2E]">
+                  <ShieldCheck className="h-7 w-7 text-[#38BDF8]" />
                 </div>
-                <h1 className="font-serif text-3xl sm:text-4xl text-stone-900 mb-3 text-center text-balance">
-                  Ask about David Robertson
+                <h1 className="mb-3 text-center text-3xl font-bold text-balance text-[#F8FAFC] sm:text-4xl">
+                  Ask Bidworx
                 </h1>
-                <p className="text-stone-500 text-sm sm:text-base text-center max-w-md leading-relaxed mb-12">
-                  Ask about David&apos;s AI systems work, architecture background, technical
-                  stack, project delivery, and role fit.
+                <p className="mb-12 max-w-md text-center text-sm leading-relaxed text-[#94A3B8] sm:text-base">
+                  Analyse tenders, buyer requirements, compliance risk,
+                  evidence gaps, and bid readiness from structured procurement records.
                 </p>
                 <div className="w-full max-w-2xl space-y-4">
                   <SuggestionCards prompts={SUGGESTED_PROMPTS} onSelect={sendMessage} />
 
-                  {/* Short-project CTA — subtle but credible */}
                   <button
                     onClick={() => sendMessage(HIRE_PROMPT)}
-                    className="group w-full text-left bg-white border border-stone-200 hover:border-amber-300 rounded-xl px-4 py-3 transition-all duration-150 flex items-start gap-3"
+                    className="group flex w-full items-start gap-3 border border-[#1E3A5F] bg-[#0D1B2E] px-4 py-3 text-left transition-all duration-150 hover:border-[#22C55E]"
                   >
-                    <span className="mt-0.5 w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
-                      <Zap className="w-3.5 h-3.5 text-amber-700" />
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border border-[#1E3A5F] bg-[#101F35]">
+                      <Gauge className="h-3.5 w-3.5 text-[#22C55E]" />
                     </span>
                     <span className="flex-1">
-                      <span className="block text-sm text-stone-800 font-medium">
-                        Hire David for a short project or MVP build
+                      <span className="block text-sm font-medium text-[#F8FAFC]">
+                        Analyse this tender opportunity
                       </span>
-                      <span className="block text-xs text-stone-500 mt-0.5 leading-relaxed">
+                      <span className="mt-0.5 block text-xs leading-relaxed text-[#94A3B8]">
                         {STACK_HIGHLIGHT}
                       </span>
                     </span>
@@ -214,16 +208,16 @@ export function ChatShell() {
                   <div className="flex justify-center pt-2">
                     <button
                       onClick={() => setShowFit(true)}
-                      className="flex items-center gap-2 text-xs text-stone-400 hover:text-stone-600 border border-stone-200 hover:border-stone-300 rounded-lg px-4 py-2 transition-all duration-150 bg-white"
+                      className="flex items-center gap-2 rounded-lg border border-[#1E3A5F] bg-[#0D1B2E] px-4 py-2 text-xs text-[#94A3B8] transition-all duration-150 hover:border-[#38BDF8] hover:text-[#F8FAFC]"
                     >
-                      <ScanText className="w-3.5 h-3.5" />
-                      Paste a job description for fit analysis
+                      <ScanText className="h-3.5 w-3.5" />
+                      Paste tender text for readiness scoring
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="max-w-3xl mx-auto px-6 py-8">
+              <div className="mx-auto max-w-3xl px-6 py-8">
                 {messages.map((msg) => (
                   <ChatMessageComponent
                     key={msg.id}

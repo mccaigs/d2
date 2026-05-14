@@ -1,0 +1,35 @@
+{
+  "examples": [
+    {
+      "title": "Software systems tender analysis",
+      "category": "regulated procurement",
+      "summary": "Analyse a buyer requirement for enterprise or regulated software delivery, then identify the evidence needed to support delivery, security, risk, and implementation claims."
+    },
+    {
+      "title": "Framework call-off readiness",
+      "category": "frameworks",
+      "summary": "Check whether the organisation can answer framework-specific questions with approved examples, policies, accreditations, and named delivery artefacts."
+    },
+    {
+      "title": "Unsupported claim prevention",
+      "category": "evidence control",
+      "summary": "Detect claims such as sector experience, security capability, delivery methodology, or social value commitments that are not yet backed by approved evidence."
+    }
+  ],
+  "capabilities": [
+    "Extracting buyer requirements from tender material",
+    "Mapping requirements to evidence categories",
+    "Identifying compliance blockers and submission risks",
+    "Scoring bid readiness with transparent deterministic rules",
+    "Summarising buyer needs for bid/no-bid decisions",
+    "Refusing unsupported claims when evidence is absent"
+  ],
+  "industries_or_domains": [
+    "public procurement",
+    "framework agreements",
+    "software and digital services",
+    "regulated buyer environments",
+    "proposal management",
+    "commercial operations"
+  ]
+}

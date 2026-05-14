@@ -20,7 +20,6 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
     const el = textareaRef.current;
     if (el) {
       el.style.height = "auto";
-      // keep focus so users can continue typing straight away
       el.focus();
     }
   }
@@ -31,7 +30,6 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    // Enter submits; Shift+Enter inserts a newline.
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       submit();
@@ -48,11 +46,11 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
   const canSend = value.trim().length > 0 && !isLoading;
 
   return (
-    <div className="border-t border-stone-200 bg-[#faf8f0]/95 backdrop-blur-sm px-4 py-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="border-t border-[#1E3A5F] bg-[#07111F]/95 px-4 py-4 backdrop-blur-sm">
+      <div className="mx-auto max-w-3xl">
         <form
           onSubmit={handleSubmit}
-          className="flex items-end gap-3 bg-white border border-stone-200 rounded-2xl px-4 py-3 shadow-sm focus-within:border-stone-400 transition-colors"
+          className="flex items-end gap-3 border border-[#1E3A5F] bg-[#0D1B2E] px-4 py-3 transition-colors focus-within:border-[#38BDF8]"
         >
           <textarea
             ref={textareaRef}
@@ -60,22 +58,22 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onInput={handleInput}
-            placeholder="Ask about David's skills, projects, experience, or role fit…"
+            placeholder="Ask about a tender, evidence gap, compliance risk, or buyer requirement..."
             rows={1}
             aria-label="Message"
-            className="flex-1 resize-none bg-transparent text-stone-800 placeholder:text-stone-400 text-sm leading-relaxed outline-none min-h-[24px] max-h-40"
+            className="max-h-40 min-h-[24px] flex-1 resize-none bg-transparent text-sm leading-relaxed text-[#F8FAFC] outline-none placeholder:text-[#94A3B8]"
           />
           <button
             type="submit"
             disabled={!canSend}
             aria-label="Send message"
-            className="shrink-0 w-8 h-8 rounded-xl bg-stone-800 text-white flex items-center justify-center hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#38BDF8] text-[#07111F] transition-all duration-150 hover:bg-[#60A5FA] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="h-3.5 w-3.5" />
           </button>
         </form>
-        <p className="text-center text-xs text-stone-400 mt-2">
-          This assistant only answers questions about David Robertson&apos;s professional background.
+        <p className="mt-2 text-center text-xs text-[#94A3B8]">
+          Bidworx only answers from approved procurement intelligence records.
         </p>
       </div>
     </div>
