@@ -33,7 +33,8 @@ def test_tender_answer_contains_required_sections() -> None:
     assert "**Submission requirements**" in answer
     assert "**Compliance risks**" in answer
     assert "**Evidence needed**" in answer
-    assert "**Bid/no-bid readiness score**" in answer
+    assert "**Bid readiness score**" in answer
+    assert "**Recommended next step**" in answer
 
 
 def test_tender_source_chips_include_rules_and_evidence() -> None:

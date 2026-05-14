@@ -36,3 +36,11 @@ class TenderAnalysis(BaseModel):
     compliance_risks: list[ComplianceRisk]
     evidence_needed: list[EvidenceNeed]
     readiness: ReadinessScore
+
+
+class SampleTender(BaseModel):
+    id: str
+    title: str
+    description: str
+    expected_band: str
+    text: str

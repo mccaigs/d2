@@ -40,6 +40,14 @@ export interface StreamMetadata {
 
 export type StreamEvent = StreamChunk | StreamMetadata;
 
+export interface SampleTender {
+  id: string;
+  title: string;
+  description: string;
+  expected_band: string;
+  text: string;
+}
+
 export interface FitGap {
   area: string;
   note: string;

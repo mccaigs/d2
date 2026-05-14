@@ -55,14 +55,24 @@ def build_tender_analysis_answer(analysis: TenderAnalysis) -> str:
 
     lines.extend([
         "",
-        "**Bid/no-bid readiness score**",
+        "**Bid readiness score**",
         f"- **{analysis.readiness.score}/100:** {analysis.readiness.label}",
     ])
     for label, score in analysis.readiness.dimensions.items():
         display = label.replace("_", " ").title()
         lines.append(f"- {display}: {score}/100")
 
+    lines.extend(["", "**Recommended next step**", f"- {recommended_next_step(analysis)}"])
+
     return "\n".join(lines)
+
+
+def recommended_next_step(analysis: TenderAnalysis) -> str:
+    if analysis.readiness.label == "Bid-ready with checks":
+        return "Build the compliance matrix and map each draft claim to an approved evidence item."
+    if analysis.readiness.label == "Review before bid":
+        return "Resolve blocker risks and missing evidence before committing bid effort."
+    return "Treat this as a cautious no-bid unless the missing capability and compliance evidence can be supplied."
 
 
 def tender_source_chips(analysis: TenderAnalysis) -> list[SourceChip]:

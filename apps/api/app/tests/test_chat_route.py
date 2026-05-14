@@ -59,7 +59,8 @@ def test_chat_stream_pasted_tender_analysis() -> None:
     assert "Submission requirements" in body
     assert "Compliance risks" in body
     assert "Evidence needed" in body
-    assert "Bid/no-bid readiness score" in body
+    assert "Bid readiness score" in body
+    assert "Recommended next step" in body
 
     metadata_lines = [
         line.removeprefix("data: ").strip()

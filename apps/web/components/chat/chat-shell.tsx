@@ -7,9 +7,10 @@ import { ChatInput } from "./chat-input";
 import { ChatMessageComponent } from "./chat-message";
 import { SuggestionCards } from "./suggestion-cards";
 import { FitAnalysisPanel } from "./fit-analysis-panel";
+import { SampleTenderPicker } from "./sample-tender-picker";
 import { sendChatMessage } from "@/lib/api";
 import { SUGGESTED_PROMPTS, HIRE_PROMPT, STACK_HIGHLIGHT } from "@/lib/constants";
-import type { ChatMessage, StreamMetadata } from "@/lib/types";
+import type { ChatMessage, SampleTender, StreamMetadata } from "@/lib/types";
 
 function generateId() {
   return Math.random().toString(36).slice(2);
@@ -30,12 +31,16 @@ export function ChatShell() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
 
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, displayText?: string) => {
     if (isLoadingRef.current) return;
     isLoadingRef.current = true;
     setIsLoading(true);
 
-    const userMsg: ChatMessage = { id: generateId(), role: "user", content: text };
+    const userMsg: ChatMessage = {
+      id: generateId(),
+      role: "user",
+      content: displayText ?? text,
+    };
     const assistantId = generateId();
     const assistantMsg: ChatMessage = {
       id: assistantId,
@@ -138,6 +143,13 @@ export function ChatShell() {
     if (isLoadingRef.current) stop();
   }, []);
 
+  const runSampleTender = useCallback(
+    (sample: SampleTender) => {
+      void sendMessage(sample.text, `Sample tender: ${sample.title}`);
+    },
+    [sendMessage]
+  );
+
   return (
     <div className="flex h-screen flex-col bg-[#07111F] text-[#F8FAFC]">
       <header className="flex shrink-0 items-center justify-between border-b border-[#1E3A5F] bg-[#07111F]/95 px-6 py-4 backdrop-blur-sm">
@@ -186,6 +198,8 @@ export function ChatShell() {
                   evidence gaps, and bid readiness from structured procurement records.
                 </p>
                 <div className="w-full max-w-2xl space-y-4">
+                  <SampleTenderPicker onSelect={runSampleTender} isLoading={isLoading} />
+
                   <SuggestionCards prompts={SUGGESTED_PROMPTS} onSelect={sendMessage} />
 
                   <button

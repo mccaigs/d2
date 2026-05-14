@@ -1,4 +1,4 @@
-import type { StreamChunk, StreamMetadata, FitResponse } from "./types";
+import type { StreamChunk, StreamMetadata, FitResponse, SampleTender } from "./types";
 
 // Frontend calls the same-origin `/api/...` path. In local dev this is
 // rewritten to the FastAPI server (see apps/web/next.config.ts).
@@ -112,4 +112,14 @@ export async function analyseFit(jobDescription: string): Promise<FitResponse> {
   }
 
   return response.json() as Promise<FitResponse>;
+}
+
+export async function fetchSampleTenders(): Promise<SampleTender[]> {
+  const response = await fetch(`${API_BASE}/sample-tenders`);
+
+  if (!response.ok) {
+    throw new Error(`Sample tenders failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<SampleTender[]>;
 }
