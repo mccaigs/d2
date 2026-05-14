@@ -1,0 +1,10 @@
+Buyer: West Mercia Integrated Care Board.
+Tender notice for digital referral and case management services.
+The supplier must provide a secure SaaS platform for referral triage, case tracking, reporting, and workflow management.
+The solution shall include implementation methodology, mobilisation planning, service reporting, SLA management, and KPI dashboards.
+The supplier must demonstrate data protection controls, cyber security governance, GDPR compliance, quality assurance, and risk management.
+The buyer requires case study evidence from comparable public sector services, named delivery roles, user training, and support arrangements.
+The response should show social value evidence, accessibility compliance, benefits tracking, and value for money.
+Responses must include a pricing schedule, signed declaration, insurance certificate, implementation plan, risk register, and data security policy.
+Submission is through the procurement portal by 12 May at 12:00.
+Evaluation will consider requirement coverage, evidence strength, service delivery quality, compliance readiness, and commercial pricing.

@@ -2,11 +2,18 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from app.models.chat import ChatCta, ChatRequest, ChatMetadata
+from app.services.bid_readiness import (
+    FOLLOW_UPS as TENDER_FOLLOW_UPS,
+    analyse_tender_text,
+    build_tender_analysis_answer,
+    tender_source_chips,
+)
 from app.services.classifier import classify, has_high_intent
 from app.services.question_intent import QuestionIntent, classify_question_intent
 from app.services.retriever import retrieve
 from app.services.answer_builder import build_answer, get_follow_ups
 from app.services.stream_writer import stream_response
+from app.services.tender_parser import looks_like_tender_text
 
 router = APIRouter()
 
@@ -14,6 +21,23 @@ router = APIRouter()
 @router.post("/chat/stream")
 async def chat_stream(request: ChatRequest) -> StreamingResponse:
     message = request.message.strip()
+
+    if looks_like_tender_text(message):
+        analysis = analyse_tender_text(message)
+        answer = build_tender_analysis_answer(analysis)
+        metadata = ChatMetadata(
+            sources=tender_source_chips(analysis),
+            follow_ups=TENDER_FOLLOW_UPS,
+            intent="tender_analysis",
+        )
+        return StreamingResponse(
+            stream_response(answer, metadata),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+            },
+        )
 
     intent = classify(message)
     question_intent = classify_question_intent(message)
