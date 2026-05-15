@@ -1,10 +1,11 @@
 export const SITE_NAME = "Bidworx";
-export const SITE_URL = "https://bidworx.local";
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://bidworx.example";
 export const SITE_DESCRIPTION =
   "Evidence-backed bid intelligence for teams that cannot afford unsupported claims.";
 
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
 export const SUGGESTED_PROMPTS = [
   "Analyse this tender opportunity",

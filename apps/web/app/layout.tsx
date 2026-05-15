@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://bidworx.example";
+const ogImageUrl = `${siteUrl.replace(/\/$/, "")}/og-image.png`;
+
 export const metadata: Metadata = {
   title: "Bidworx - Evidence-backed bid intelligence",
   description:
@@ -9,13 +12,13 @@ export const metadata: Metadata = {
     title: "Bidworx - Evidence-backed bid intelligence",
     description:
       "Analyse tenders, score opportunities, map evidence, and identify compliance risk.",
-    url: "https://bidworx.local",
+    url: siteUrl,
     siteName: "Bidworx",
     locale: "en_GB",
     type: "website",
     images: [
       {
-        url: "https://bidworx.local/og-image.png",
+        url: ogImageUrl,
         width: 1200,
         height: 630,
         alt: "Bidworx - Evidence-backed bid intelligence",
@@ -27,7 +30,7 @@ export const metadata: Metadata = {
     title: "Bidworx - Evidence-backed bid intelligence",
     description:
       "Analyse tenders, score opportunities, map evidence, and identify compliance risk.",
-    images: ["https://bidworx.local/og-image.png"],
+    images: [ogImageUrl],
   },
 };
 

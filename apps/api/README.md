@@ -17,6 +17,7 @@ FastAPI backend for evidence-backed bid intelligence.
 - `GET /api/profile`
 - `GET /api/suggestions`
 - `POST /api/fit/analyse`
+- `GET /api/sample-tenders`
 
 The `/fit/analyse` route keeps the existing response contract while scoring bid readiness rather than legacy suitability.
 
